@@ -456,14 +456,21 @@ const AudioE = {
 };
 
 /* =====================================================================
-   VOICE: browser speech synthesis (Russian voice), optional
+   VOICE: pre-recorded neural narration (audio/<scene>-<beat>.mp3, see tools/make_voice.py);
+   browser speech synthesis is the fallback when a file is missing or fails to play
    ===================================================================== */
+/*NARR*/const NARR = {"voice": "нейроголос «Светлана» (Microsoft)", "dur": {"intro-1": 6.38, "intro-2": 6.24, "intro-3": 6.6, "coffee-0": 6.62, "coffee-1": 3.82, "coffee-2": 5.86, "coffee-3": 4.61, "coffee-4": 10.03, "grid-0": 9.62, "grid-1": 8.28, "grid-2": 8.69, "grid-3": 12.91, "grid-4": 3.5, "grid-5": 9.67, "grid-6": 7.68, "checker-0": 7.42, "checker-1": 11.69, "checker-2": 10.32, "checker-3": 8.81, "checker-4": 7.87, "checker-5": 9.34, "past-0": 9.7, "past-1": 7.22, "past-2": 8.35, "past-3": 11.54, "past-4": 9.86, "past-5": 13.94, "gravity-0": 9.43, "gravity-1": 9.79, "gravity-2": 7.66, "gravity-3": 6.96, "gravity-4": 9.07, "gravity-5": 9.65, "idea-0": 4.39, "idea-1": 10.78, "idea-2": 8.21, "idea-3": 6.02, "idea-4": 8.69, "idea-5": 4.34, "complexity-0": 9.12, "complexity-1": 10.18, "complexity-2": 7.13, "complexity-3": 6.86, "twoOnes-0": 5.35, "twoOnes-1": 10.42, "twoOnes-2": 8.9, "twoOnes-3": 11.02, "twoOnes-4": 10.01, "twoOnes-5": 7.63, "twoOnes-6": 10.3, "echo-0": 10.25, "echo-1": 8.28, "echo-2": 5.71, "echo-3": 10.32, "gibbs-0": 6.77, "gibbs-1": 3.91, "gibbs-2": 7.25, "gibbs-3": 9.41, "gibbs-4": 11.45, "penrose-0": 9.65, "penrose-1": 9.26, "penrose-2": 6.6, "penrose-3": 8.14, "penrose-4": 7.34, "penrose-5": 15.12, "zero-0": 5.33, "zero-1": 5.3, "zero-2": 11.14, "zero-3": 8.35, "zero-4": 7.01, "zero-5": 10.54, "ladder-0": 9.5, "ladder-1": 14.64, "ladder-2": 8.95, "ladder-3": 9.65, "ladder-4": 10.08, "ladder-5": 8.04, "answers-0": 8.88, "answers-1": 9.02, "answers-2": 10.27, "answers-3": 10.56, "answers-4": 9.12, "answers-5": 14.02, "answers-6": 4.9, "finale-0": 9.79, "finale-1": 9.72, "finale-2": 8.35, "finale-3": 7.92}};/*/NARR*/
 function speechText(s) {
   return s.replace(/\*/g, '').replace(/[«»"]/g, '').replace(/\s—\s/g, ', ').replace(/→/g, ' ').replace(/≈/g, ' примерно ')
     .replace(/·/g, ' ').replace(/…/g, '.').replace(/\s+/g, ' ').trim();
 }
+// text sent to the neural voice when recording: keeps dashes and quotes, which it phrases naturally
+function narrText(s) {
+  s = s.replace(/\*/g, '').replace(/^…\s*/, '').replace(/\s=\s/g, ' — это ').replace(/→/g, ' — ').replace(/≈/g, 'примерно').replace(/·/g, ',').replace(/\s+/g, ' ').trim();
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
 const Voice = {
-  on: true, v: null, tok: 0, keep: [], done: true, doneAt: 0, deadline: 0, rate: 1.03,
+  on: true, v: null, tok: 0, keep: [], done: true, doneAt: 0, deadline: 0, rate: 1.03, audio: null, cache: {}, left: 0, paused: false,
   supported: 'speechSynthesis' in window,
   load() {
     if (!this.supported) return;
@@ -473,29 +480,59 @@ const Voice = {
     ru.sort((a, b) => score(b) - score(a));
     this.v = ru[0] || null;
     if (this.v) this.rate = /natural|online|neural/i.test(this.v.name) ? 1.08 : 1.1;
-    if (typeof UI !== 'undefined') UI.voiceAvail(!!this.v);
+    if (typeof UI !== 'undefined') UI.voiceAvail();
   },
-  active() { return this.on && this.supported && !!this.v; },
-  say(text) {
+  rec() { return Object.keys(NARR.dur).length > 0; },
+  has(key) { return !!key && NARR.dur[key] != null; },
+  tts() { return this.supported && !!this.v; },
+  available() { return this.rec() || this.tts(); },
+  active() { return this.on && this.available(); },
+  preload(keys) { for (const k of keys) if (this.has(k) && !this.cache[k]) { const a = new Audio(); a.preload = 'auto'; a.src = 'audio/' + k + '.mp3'; this.cache[k] = a; } },
+  say(text, key) {
     this.cancel();
-    if (!this.active() || !text) return;
+    if (!this.on || !text) return;
+    if (this.has(key)) this.playRec(key, text, this.tok); else this.sayTTS(text, this.tok);
+  },
+  finish(tok) { if (this.tok === tok) { this.done = true; this.doneAt = performance.now(); this.audio = null; AudioE.duck(false); } },
+  playRec(key, text, tok) {
+    this.preload([key]); const a = this.cache[key];
+    this.done = false; this.audio = a; this.deadline = performance.now() + (NARR.dur[key] * 1.5 + 8) * 1000; AudioE.duck(true);
+    const fail = () => { if (this.tok !== tok) return; this.audio = null; delete this.cache[key]; if (this.tts()) this.sayTTS(text, tok); else this.finish(tok); };
+    a.onended = () => this.finish(tok); a.onerror = fail;
+    try { a.currentTime = 0; } catch (e) { }
+    const p = a.play(); if (p && p.catch) p.catch(fail);
+  },
+  sayTTS(text, tok) {
+    if (!this.tts()) return;
     const clean = speechText(text), parts = clean.match(/[^.!?]+[.!?]*\s*/g) || [clean];
-    const tok = this.tok; this.done = false; this.deadline = performance.now() + (clean.length / 11 + 3) * 1000 * 1.6;
+    this.done = false; this.deadline = performance.now() + (clean.length / 11 + 3) * 1000 * 1.6;
     AudioE.duck(true);
     parts.forEach((p, i) => {
       const u = new SpeechSynthesisUtterance(p.trim()); u.voice = this.v; u.lang = this.v.lang; u.rate = this.rate; u.pitch = 1; u.volume = 1;
-      if (i === parts.length - 1) u.onend = u.onerror = () => { if (this.tok === tok) { this.done = true; this.doneAt = performance.now(); AudioE.duck(false); } };
+      if (i === parts.length - 1) u.onend = u.onerror = () => this.finish(tok);
       this.keep.push(u); speechSynthesis.speak(u);
     });
   },
+  // pause keeps a recorded line where it stopped; browser TTS cannot resume reliably, so it restarts the line
+  pause() {
+    if (this.audio && !this.done) { this.audio.pause(); this.paused = true; this.left = this.deadline - performance.now(); AudioE.duck(false); }
+    else this.cancel();
+  },
+  resume() {
+    if (!this.paused || !this.audio) { this.paused = false; return false; }
+    this.paused = false; this.deadline = performance.now() + this.left; AudioE.duck(true);
+    const p = this.audio.play(); if (p && p.catch) p.catch(() => { });
+    return true;
+  },
   cancel() {
-    this.tok++; this.keep = []; this.done = true; this.doneAt = 0;
+    this.tok++; this.keep = []; this.done = true; this.doneAt = 0; this.paused = false;
+    if (this.audio) { try { this.audio.pause(); } catch (e) { } this.audio = null; }
     if (this.supported) try { speechSynthesis.cancel(); } catch (e) { }
     AudioE.duck(false);
   },
   finished() {
     if (this.done) return performance.now() - this.doneAt > 380;
-    if (performance.now() > this.deadline) { this.done = true; this.doneAt = 0; AudioE.duck(false); return true; }
+    if (performance.now() > this.deadline) { this.cancel(); return true; }
     return false;
   }
 };
@@ -687,7 +724,7 @@ scene({
   beats: [
     { t: 'Капля сливок в чашке кофе. Сначала всё просто: здесь белое, там чёрное.', d: 6, sfx: 'drip' },
     { t: 'Потом появляются завитки, вихри, узоры…', d: 7 },
-    { t: '…и наконец всё становится ровным. Перемешанное *само не разделяется*.', d: 8 },
+    { t: '…и наконец всё становится ровным. Перемешанное *само не разделяется*.', v: 'И наконец всё становится ровным. Перемешанное само не разделяется.', d: 8 },
     { t: 'Прокрутите плёнку назад — и любой зритель скажет: *так не бывает*.', d: 5.8 },
     { t: 'Но почему? Каждое отдельное столкновение молекул одинаково правдоподобно и вперёд, и назад. Откуда же у времени *стрела*?', d: 5 }
   ],
@@ -1355,7 +1392,7 @@ scene({
     { t: 'Теперь заострим. На самом деле «единиц» — *две*.', sfx: 'pop', d: 3 },
     { t: 'Первая — буквальное отсутствие различий: все клетки заполнены. W = 1, S = 0. Но здесь *ничего не может происходить*.', v: 'Первая — буквальное отсутствие различий: все клетки заполнены. Способ один, энтропия ноль. Но здесь ничего не может происходить.' },
     { t: 'Вторая — однородная серая смесь. Она «одна» только для грубого глаза, а под ней — *море различимых расстановок*.', d: 5 },
-    { t: 'Одно макросостояние, за которым море микросостояний, — это и есть *определение высокой энтропии*. Переименованием «серое → единица» её не сбросить.' },
+    { t: 'Одно макросостояние, за которым море микросостояний, — это и есть *определение высокой энтропии*. Переименованием «серое → единица» её не сбросить.', v: 'Одно макросостояние, за которым море микросостояний, — это и есть определение высокой энтропии. Если просто назвать серое единицей, энтропию не сбросить.' },
     { t: 'А если повышать уровень восприятия, пока различия не станут неразличимы совсем? Беда в том, что фундаментальная динамика *сохраняет различия*.', sfx: 'riser' },
     { t: 'В классике это *теорема Лиувилля*, в квантовой физике — *унитарность*: два разных микросостояния никогда не сливаются в одно.', d: 5 },
     { t: 'Облачко состояний вытягивается в тонкую нить. Грубо — всё серое. Но объём не изменился, и нить *помнит*, откуда пришла.', d: 5.5 }
@@ -1430,7 +1467,7 @@ scene({
   id: 'echo', chapter: 'Спиновое эхо', mood: 4,
   beats: [
     { t: 'Это видно в эксперименте со *спиновым эхом* (Эрвин Хан, 1950). Спины в образце выстраивают в одну сторону…', v: 'Это видно в эксперименте со спиновым эхом. Эрвин Хан, тысяча девятьсот пятидесятый год. Спины в образце выстраивают в одну сторону…', d: 4 },
-    { t: '…они расходятся, и суммарная намагниченность падает до нуля. Полное «серое»: прибор не видит никакого порядка.', d: 5.5 },
+    { t: '…они расходятся, и суммарная намагниченность падает до нуля. Полное «серое»: прибор не видит никакого порядка.', v: 'Они расходятся, и суммарная намагниченность падает до нуля. Полное «серое»: прибор не видит никакого порядка.', d: 5.5 },
     { t: 'Теперь импульс, который обращает движение… и порядок *сам возникает из серого*!', d: 7 },
     { t: 'Различия никуда не делись. Серое было единицей *только для прибора*. Повышение уровня восприятия меняет описание, а не сам мир.', d: 5 }
   ],
@@ -1671,7 +1708,7 @@ scene({
     { t: 'Главное: в момент, когда пристраивают пустоту, энтропия *не уменьшается* — она остаётся прежней. Растёт *потолок*: максимально возможная энтропия.', d: 5 },
     { t: 'И у мира снова появляется, куда перемешиваться. Энтропия только растёт, но *зазор* до потолка открывается заново.', d: 6 },
     { t: 'Это идея *Лейзера и Фраучи*: в расширяющейся Вселенной максимально возможная энтропия растёт быстрее фактической.', d: 6 },
-    { t: 'Поэтому «спираль» — точное слово: не круг с возвратом, а *суммарный рост при локальном обнулении*. Так же устроена циклическая модель *Стейнхардта — Турока*.', sfx: 'shimmer', d: 5 }
+    { t: 'Поэтому «спираль» — точное слово: не круг с возвратом, а *суммарный рост при локальном обнулении*. Так же устроена циклическая модель *Стейнхардта — Турока*.', v: 'Поэтому «спираль» — точное слово: не круг с возвратом, а суммарный рост при локальном обнулении. Так же устроена циклическая модель Стейнхардта и Турока.', sfx: 'shimmer', d: 5 }
   ],
   init(S) {
     const r = mulberry(71); S.x0 = 150; S.right = 450; S.ch = []; S.jumps = []; S.hist = []; S.ht = 0;
@@ -1754,7 +1791,7 @@ scene({
   id: 'ladder', chapter: 'Путь 3. Лестница уровней', mood: 3,
   beats: [
     { t: 'Путь третий — без новой физики. Локально уменьшать энтропию можно: холодильник охлаждает камеру, но выбрасывает наружу ещё больше тепла.', d: 5 },
-    { t: 'Так и здесь: различия не стираются, а *отключаются*. Есть аппарат смены уровня описания — *огрубление и ренормгруппа*: мелкое усредняется, и равновесие нижнего этажа становится гладким фоном для верхнего.', sfx: 'whoosh', d: 6 },
+    { t: 'Так и здесь: различия не стираются, а *отключаются*. Есть аппарат смены уровня описания — *огрубление и ренормгруппа*: мелкое усредняется, и равновесие нижнего этажа становится гладким фоном для верхнего.', v: 'Так и здесь: различия не стираются, а отключаются. Есть аппарат смены уровня описания — огрубление и ренормализационная группа: мелкое усредняется, и равновесие нижнего этажа становится гладким фоном для верхнего.', sfx: 'whoosh', d: 6 },
     { t: 'Возможно, наш *вакуум* — как раз такое «серое, ставшее единицей»: внутри кипят флуктуации, а для частиц это просто пустота.', d: 5 },
     { t: 'Почти вся энтропия Вселенной, если не считать чёрных дыр, сидит в *реликтовых фотонах и нейтрино*. Галактики их почти не чувствуют.', d: 5.5 },
     { t: 'Условие одно: серое должно быть *холодным* для нового уровня — иначе оно просочится наверх шумом. А расширение как раз всё время охлаждает фон.', sfx: 'freeze', d: 5.5 },
@@ -1898,7 +1935,7 @@ scene({
   id: 'finale', chapter: 'Итог', mood: 0, tail: 1.2,
   beats: [
     { t: 'Итак. Идея «единицы и нуля» — не наивная. Она из той же семьи, что модели *Пенроуза и Барбура*.', sfx: 'shimmer', d: 5 },
-    { t: 'Самое слабое её звено — «перемешанное серое = единица». Такая единица не отменяет рост полной энтропии, а *прячет* его.', d: 5.5 },
+    { t: 'Самое слабое её звено — «перемешанное серое = единица». Такая единица не отменяет рост полной энтропии, а *прячет* его.', v: 'Самое слабое её звено — «перемешанное серое — это единица». Такая единица не отменяет рост полной энтропии, а прячет его.', d: 5.5 },
     { t: 'Самое сильное — «*добавить ноль*». Если пространство возможностей может расти, спирали не нужно нарушать второй закон.', d: 6 },
     { t: 'А откуда взялся самый первый минимум — пока не знает никто. Возможно, ответ начнётся с такого же вопроса.', d: 6.5, sfx: 'boom' }
   ],
@@ -1936,7 +1973,9 @@ addEventListener('resize', resize); resize();
 
 const E = { i: 0, S: null, playing: false, started: false, trans: null, fade: 0, ended: false, clock: 0 };
 const readT = t => clamp(t.length / 16 + 1.2, 2.6, 16);
-const estScene = sc => (sc.lead ?? (sc.chapter ? 2.9 : .6)) + sc.beats.reduce((s, b) => s + Math.max(b.d || 0, b.t ? readT(b.t) : 0), 0) + (sc.tail ?? .9) + 1.5;
+const beatKey = (sc, k) => sc.id + '-' + k;
+const beatEst = (sc, k) => { const b = sc.beats[k], key = beatKey(sc, k); if (!b.t) return b.d || 0; return Math.max(b.d || 0, Voice.has(key) ? NARR.dur[key] + .5 : readT(b.t)); };
+const estScene = sc => (sc.lead ?? (sc.chapter ? 2.9 : .6)) + sc.beats.reduce((s, b, k) => s + beatEst(sc, k), 0) + (sc.tail ?? .9) + 1.5;
 function mkS(sc) { const S = { t: 0, beat: -1, bt: 0, bs: [], lead: sc.lead ?? (sc.chapter ? 2.9 : .6) }; S.s = k => S.beat >= k ? S.t - S.bs[k] : -1; return S; }
 function enterScene(i) {
   E.i = i; const sc = SCENES[i]; E.S = mkS(sc); E.ended = false;
@@ -1944,12 +1983,13 @@ function enterScene(i) {
   Cap.hide(); UI.scene(i); UI.end(false);
   if (sc.chapter && E.started) UI.chapter(i);
   AudioE.setMood(sc.mood ?? i);
+  Voice.preload([i, i + 1].filter(j => j < SCENES.length).flatMap(j => SCENES[j].beats.map((b, k) => beatKey(SCENES[j], k))));
 }
 function nextBeat() {
   const sc = SCENES[E.i], S = E.S; S.beat++; S.bs[S.beat] = S.t; S.bt = 0;
   const b = sc.beats[S.beat];
   if (!b) { Cap.hide(); return; }
-  if (b.t) { Cap.show(b.t); Voice.say(b.v || b.t); } else Cap.hide();
+  if (b.t) { Cap.show(b.t); Voice.say(b.v || b.t, beatKey(sc, S.beat)); } else Cap.hide();
   if (b.sfx) AudioE.play(b.sfx);
   try { sc.onBeat && sc.onBeat(S.beat, S); } catch (e) { console.error(e); }
 }
@@ -1981,8 +2021,8 @@ function jump(i, d = .75) {
 }
 function setPlaying(p) {
   E.playing = p; UI.playState(p);
-  if (p) { AudioE.resume(); const S = E.S, b = SCENES[E.i].beats[S.beat]; if (b && b.t && S.beat >= 0) { S.bt = Math.min(S.bt, .3); Voice.say(b.v || b.t); } }
-  else { Voice.cancel(); AudioE.suspend(); }
+  if (p) { AudioE.resume(); const S = E.S, sc = SCENES[E.i], b = sc.beats[S.beat]; if (!Voice.resume() && b && b.t && S.beat >= 0 && Voice.active()) { S.bt = Math.min(S.bt, .3); Voice.say(b.v || b.t, beatKey(sc, S.beat)); } }
+  else { Voice.pause(); AudioE.suspend(); }
 }
 function render() {
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
@@ -2079,14 +2119,15 @@ const UI = {
     $('go').onclick = () => this.start();
     const mins = Math.round(SCENES.reduce((s, sc) => s + estScene(sc), 0) / 60);
     this.readyLbl = `Смотреть · ≈ ${mins} мин`;
-    this.voiceAvail(!!Voice.v);
+    this.voiceAvail();
     this.refresh();
   },
   ready() { $('go').disabled = false; $('goLbl').textContent = this.readyLbl; },
   start() {
     if (E.started) return; E.started = true;
     AudioE.init(); AudioE.resume(); AudioE.setMood(SCENES[0].mood);
-    if (Voice.supported && Voice.on && Voice.v) { try { const u = new SpeechSynthesisUtterance(' '); u.volume = 0; speechSynthesis.speak(u); } catch (e) { } }
+    Voice.preload(SCENES.slice(0, 2).flatMap(sc => sc.beats.map((b, k) => beatKey(sc, k))));
+    if (Voice.supported && Voice.on && Voice.v && !Voice.rec()) { try { const u = new SpeechSynthesisUtterance(' '); u.volume = 0; speechSynthesis.speak(u); } catch (e) { } }
     $('start').classList.add('gone'); E.S.bt = 0; E.S.lead = .3; E.S.beat = -1;
     E.clock = 0; setPlaying(true); this.poke();
   },
@@ -2102,7 +2143,7 @@ const UI = {
   },
   tick() {
     if (!this.segs || !E.S) return; const S = E.S, sc = SCENES[E.i];
-    let f = 0; if (S.beat >= sc.beats.length) f = 1; else if (S.beat >= 0) { const b = sc.beats[S.beat]; f = (S.beat + clamp(S.bt / Math.max(b.d || 0, b.t ? readT(b.t) : 1))) / sc.beats.length; }
+    let f = 0; if (S.beat >= sc.beats.length) f = 1; else if (S.beat >= 0) { const b = sc.beats[S.beat]; f = (S.beat + clamp(S.bt / Math.max(1, beatEst(sc, S.beat)))) / sc.beats.length; }
     this.segs.forEach((el, k) => { const w = k < E.i ? 100 : k > E.i ? 0 : f * 100; if (el._w !== w) { el.style.width = w + '%'; el._w = w; } });
   },
   playState(p) { $('playPath').setAttribute('d', p ? 'M7 5h4v14H7zM13 5h4v14h-4z' : 'M8 5v14l11-7z'); $('paused').classList.toggle('on', !p && E.started && !E.ended); if (!p) this.showCtrl(true); },
@@ -2111,7 +2152,7 @@ const UI = {
   menu(on) { $('menu').classList.toggle('on', on); },
   end(on) { $('end').classList.toggle('on', on); $('hud').style.opacity = on ? '0' : ''; if (on) { this.showCtrl(true); $('paused').classList.remove('on'); } },
   full() { const d = document; if (!d.fullscreenElement) (d.documentElement.requestFullscreen || d.documentElement.webkitRequestFullscreen || (() => { })).call(d.documentElement); else (d.exitFullscreen || d.webkitExitFullscreen).call(d); },
-  setVoice(on) { Voice.on = on; if (!on) Voice.cancel(); else if (E.started && E.playing) { const S = E.S, b = SCENES[E.i].beats[S.beat]; if (b && b.t) Voice.say(b.v || b.t); } this.refresh(); },
+  setVoice(on) { Voice.on = on; if (!on) Voice.cancel(); else if (E.started && E.playing) { const S = E.S, sc = SCENES[E.i], b = sc.beats[S.beat]; if (b && b.t) Voice.say(b.v || b.t, beatKey(sc, S.beat)); } this.refresh(); },
   setMusic(on) { AudioE.on.music = on; AudioE.updateMusic(.4); this.refresh(); },
   setSfx(on) { AudioE.setSfx(on); this.refresh(); },
   setSubs(on) { Cap.toggle(on); this.refresh(); },
@@ -2119,10 +2160,10 @@ const UI = {
     $('bVoice').classList.toggle('off', !Voice.active()); $('bMusic').classList.toggle('off', !AudioE.on.music); $('bSfx').classList.toggle('off', !AudioE.on.sfx); $('bSubs').classList.toggle('off', !Cap.on);
     $('oVoice').checked = Voice.active(); $('oMusic').checked = AudioE.on.music; $('oSubs').checked = Cap.on;
   },
-  voiceAvail(ok) {
-    const vb = $('bVoice'), ov = $('oVoice'); if (!vb) return;
+  voiceAvail() {
+    const vb = $('bVoice'), ov = $('oVoice'); if (!vb) return; const ok = Voice.available();
     vb.disabled = !ok; ov.disabled = !ok;
-    $('vnote').textContent = ok ? 'Голос: ' + Voice.v.name.replace(/Microsoft |Google |\(.*?\)|Online|Natural/g, '').trim() + ' — голос вашего браузера' : (Voice.supported ? 'В этом браузере нет русского голоса — фильм пойдёт с субтитрами' : 'Браузер не поддерживает синтез речи — фильм пойдёт с субтитрами');
+    $('vnote').textContent = Voice.rec() ? 'Озвучка: ' + NARR.voice : ok ? 'Голос: ' + Voice.v.name.replace(/Microsoft |Google |\(.*?\)|Online|Natural/g, '').trim() + ' — голос вашего браузера' : (Voice.supported ? 'В этом браузере нет русского голоса — фильм пойдёт с субтитрами' : 'Браузер не поддерживает синтез речи — фильм пойдёт с субтитрами');
     this.refresh();
   }
 };
