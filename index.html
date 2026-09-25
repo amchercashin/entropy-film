@@ -1,0 +1,2154 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Единица и ноль — фильм о стреле времени</title>
+<meta name="description" content="Короткий научно-популярный фильм об энтропии, стреле времени, гипотезе прошлого и о том, может ли Вселенная развиваться по спирали.">
+<meta property="og:title" content="Единица и ноль — фильм о стреле времени">
+<meta property="og:description" content="Энтропия, сливки в кофе, шахматная ловушка, гравитация, спиновое эхо, Пенроуз, точка Януса — анимированный фильм прямо в браузере.">
+<meta name="theme-color" content="#04050b">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@300;500;700;800;900&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#04050b;--gold:#ffb547;--cyan:#4fd1ff;--pink:#ff4f9a;--text:#eef2ff;--dim:rgba(225,232,255,.62)}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--bg);color:var(--text);overflow:hidden;font-family:Manrope,'Segoe UI',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+#cv{position:fixed;inset:0;width:100%;height:100%;display:block}
+#shade{position:fixed;left:0;right:0;bottom:0;height:34vh;pointer-events:none;background:linear-gradient(to top,rgba(2,3,9,.92),rgba(2,3,9,.55) 45%,transparent)}
+/* captions */
+#cap{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 70px);transform:translateX(-50%);width:min(1120px,92vw);text-align:center;font-size:clamp(16px,1.25vw + 9px,30px);line-height:1.42;font-weight:600;letter-spacing:.005em;text-shadow:0 2px 14px rgba(0,0,0,.95),0 0 3px #000;pointer-events:none;transition:opacity .3s}
+#cap.out{opacity:0}
+#cap .w{display:inline-block;opacity:0;transform:translateY(9px);filter:blur(5px);animation:wIn .55s cubic-bezier(.2,.7,.2,1) forwards}
+#cap .em{color:var(--gold)}
+@keyframes wIn{to{opacity:1;transform:none;filter:none}}
+/* hud */
+#hud{position:fixed;left:calc(env(safe-area-inset-left) + 22px);top:18px;font-family:Unbounded,sans-serif;font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:var(--dim);opacity:0;transition:opacity .8s;pointer-events:none;display:flex;gap:12px;align-items:center}
+#hud.on{opacity:1}
+#hud b{color:var(--gold);font-weight:700}
+#hud i{font-style:normal;width:26px;height:1px;background:rgba(255,255,255,.3)}
+/* chapter card */
+#chap{position:fixed;left:50%;top:46%;transform:translate(-50%,-50%);text-align:center;pointer-events:none;opacity:0;width:92vw}
+#chap.show{animation:chapIn 2.9s cubic-bezier(.2,.7,.2,1) forwards}
+#chap .num{font-family:Unbounded,sans-serif;font-weight:300;font-size:clamp(12px,1.1vw,18px);letter-spacing:.55em;color:var(--gold);padding-left:.55em}
+#chap .ttl{font-family:Unbounded,sans-serif;font-weight:800;font-size:clamp(26px,4.4vw,74px);letter-spacing:.01em;margin-top:.28em;line-height:1.1;background:linear-gradient(92deg,#fff 20%,#bfe5ff 60%,#ffd9a0);-webkit-background-clip:text;background-clip:text;color:transparent}
+#chap .bar{height:2px;width:0;margin:22px auto 0;background:linear-gradient(90deg,transparent,var(--gold),var(--cyan),transparent)}
+#chap.show .bar{animation:barIn 2.9s ease forwards}
+@keyframes chapIn{0%{opacity:0;filter:blur(14px);transform:translate(-50%,-44%) scale(1.05)}18%{opacity:1;filter:blur(0);transform:translate(-50%,-50%) scale(1)}76%{opacity:1;filter:blur(0)}100%{opacity:0;filter:blur(8px);transform:translate(-50%,-56%) scale(.98)}}
+@keyframes barIn{0%{width:0}45%{width:min(560px,64vw)}100%{width:min(560px,64vw);opacity:0}}
+/* paused */
+#paused{position:fixed;left:50%;top:50%;width:96px;height:96px;margin:-48px 0 0 -48px;border-radius:50%;background:rgba(255,255,255,.08);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.18);display:grid;place-items:center;opacity:0;transform:scale(.8);transition:.25s;pointer-events:none}
+#paused.on{opacity:1;transform:none}
+#paused svg{width:40px;height:40px;fill:#fff;margin-left:6px}
+/* controls */
+#ctrl{position:fixed;z-index:6;left:0;right:0;bottom:0;padding:10px calc(env(safe-area-inset-right) + 18px) calc(env(safe-area-inset-bottom) + 10px) calc(env(safe-area-inset-left) + 18px);opacity:0;transform:translateY(8px);transition:opacity .35s,transform .35s;pointer-events:none}
+#ctrl.show{opacity:1;transform:none;pointer-events:auto}
+#prog{display:flex;gap:3px;height:16px;align-items:center;cursor:pointer}
+#prog .seg{position:relative;height:4px;border-radius:3px;background:rgba(255,255,255,.16);transition:height .15s}
+#prog .seg:hover{height:8px}
+#prog .seg .f{position:absolute;left:0;top:0;bottom:0;width:0;border-radius:3px;background:linear-gradient(90deg,var(--gold),var(--cyan))}
+#prog .seg .tip{position:absolute;bottom:14px;left:50%;transform:translateX(-50%);white-space:nowrap;font-size:12px;background:rgba(10,12,28,.92);border:1px solid rgba(255,255,255,.14);padding:5px 9px;border-radius:8px;opacity:0;pointer-events:none;transition:.15s}
+#prog .seg:hover .tip{opacity:1}
+.row{display:flex;align-items:center;gap:6px;margin-top:6px}
+.row .sp{flex:1}
+.btn{height:38px;min-width:38px;padding:0 10px;border-radius:10px;display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:600;color:rgba(235,240,255,.88);transition:background .2s,color .2s}
+.btn:hover{background:rgba(255,255,255,.09)}
+.btn svg{width:20px;height:20px;fill:currentColor;flex:none}
+.btn.tog.off{color:rgba(235,240,255,.38)}
+.btn.tog.off span{text-decoration:line-through}
+.btn[disabled]{opacity:.3;cursor:not-allowed}
+#tInfo{font-size:13px;color:var(--dim);margin-left:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#tInfo b{color:#fff;font-weight:700}
+/* menu */
+#menu{position:fixed;z-index:7;right:18px;bottom:78px;width:min(380px,92vw);max-height:66vh;overflow:auto;background:rgba(8,10,24,.94);border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:8px;opacity:0;transform:translateY(10px);pointer-events:none;transition:.25s;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+#menu.on{opacity:1;transform:none;pointer-events:auto}
+#menu button{display:flex;width:100%;text-align:left;gap:12px;padding:9px 12px;border-radius:10px;font-size:14px;color:rgba(235,240,255,.85)}
+#menu button:hover{background:rgba(255,255,255,.07)}
+#menu button.cur{background:rgba(255,181,71,.12);color:#fff}
+#menu button em{font-style:normal;font-family:'JetBrains Mono',monospace;color:var(--gold);min-width:24px}
+/* start */
+#start{position:fixed;inset:0;display:grid;place-items:center;background:radial-gradient(ellipse at 50% 40%,rgba(8,10,30,.35),rgba(2,3,9,.86) 70%);transition:opacity .9s,visibility .9s;z-index:5;padding:20px;overflow:auto}
+#start.gone{opacity:0;visibility:hidden}
+.st{text-align:center;max-width:900px}
+.over{font-family:Unbounded,sans-serif;font-size:clamp(10px,1vw,13px);letter-spacing:.5em;text-transform:uppercase;color:var(--gold);padding-left:.5em}
+#start h1{font-family:Unbounded,sans-serif;font-weight:900;font-size:clamp(28px,6.6vw,112px);line-height:1;margin:.28em 0 .18em;letter-spacing:.02em}
+#start h1 .a{background:linear-gradient(180deg,#fff2d6,var(--gold));-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 30px rgba(255,181,71,.35))}
+#start h1 .b{background:linear-gradient(180deg,#e2f7ff,var(--cyan));-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 30px rgba(79,209,255,.35))}
+#start h1 .i{font-weight:300;font-size:.42em;vertical-align:.45em;color:rgba(255,255,255,.7);margin:0 .25em}
+.sub{font-size:clamp(15px,1.5vw,20px);color:var(--dim);max-width:640px;margin:0 auto;line-height:1.5}
+#go{position:relative;width:112px;height:112px;border-radius:50%;margin:34px auto 12px;display:grid;place-items:center;background:radial-gradient(circle at 35% 30%,#ffe2ad,var(--gold) 45%,#e0762b);box-shadow:0 0 0 1px rgba(255,255,255,.2),0 10px 60px rgba(255,160,60,.45);transition:transform .25s}
+#go:hover{transform:scale(1.06)}
+#go svg{width:44px;height:44px;fill:#1a0f02;margin-left:7px}
+#go .ring{position:absolute;inset:-14px;border-radius:50%;border:2px solid rgba(255,181,71,.5);animation:ring 2.4s ease-out infinite}
+#go .ring.r2{animation-delay:1.2s}
+@keyframes ring{0%{transform:scale(.85);opacity:.9}100%{transform:scale(1.5);opacity:0}}
+#go[disabled]{filter:grayscale(1) brightness(.6);cursor:wait}
+.go-lbl{font-size:14px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+.opts{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin:26px 0 14px}
+.chip{display:inline-flex;align-items:center;gap:9px;padding:9px 15px;border-radius:999px;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.04);font-size:14px;cursor:pointer;user-select:none}
+.chip input{appearance:none;-webkit-appearance:none;width:34px;height:20px;border-radius:20px;background:rgba(255,255,255,.18);position:relative;transition:.2s;cursor:pointer}
+.chip input::after{content:'';position:absolute;left:3px;top:3px;width:14px;height:14px;border-radius:50%;background:#fff;transition:.2s}
+.chip input:checked{background:var(--gold)}
+.chip input:checked::after{left:17px}
+.chip input:disabled{opacity:.35}
+.hint{font-size:13px;color:rgba(225,232,255,.45);line-height:1.7}
+.vnote{font-size:12px;color:rgba(225,232,255,.4);margin-top:6px;min-height:1em}
+/* end */
+#end{position:fixed;inset:0;display:flex;padding:24px 24px 96px;background:radial-gradient(ellipse at center,rgba(3,4,12,.55),rgba(3,4,12,.9));opacity:0;visibility:hidden;transition:opacity 1.2s,visibility 1.2s;z-index:4;overflow:auto}
+#end.on{opacity:1;visibility:visible}
+.end{max-width:820px;width:100%;margin:auto}
+.end h2{font-family:Unbounded,sans-serif;font-weight:800;font-size:clamp(26px,3.6vw,46px);margin:.3em 0 .7em}
+.books{list-style:none;display:grid;gap:10px}
+.books li{padding:14px 18px;border-radius:14px;background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.1);line-height:1.5;font-size:clamp(14px,1.2vw,16px);color:rgba(235,240,255,.85)}
+.books b{color:#fff}
+.books span{display:block;color:var(--dim);font-size:.92em;margin-top:2px}
+.ebtns{display:flex;gap:12px;flex-wrap:wrap;margin:26px 0 20px}
+.ebtns button{padding:13px 22px;border-radius:12px;font-weight:700;font-size:15px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.06)}
+.ebtns button.pri{background:var(--gold);color:#1a0f02;border-color:transparent}
+.credits{font-size:13px;color:rgba(225,232,255,.45);line-height:1.7}
+@media (max-width:760px){.btn span{display:none}#tInfo{display:none}#cap{bottom:calc(env(safe-area-inset-bottom) + 64px)}}
+</style>
+</head>
+<body>
+<canvas id="cv" aria-label="Анимация фильма"></canvas>
+<div id="shade"></div>
+<div id="hud"><b id="hudNum"></b><i></i><span id="hudTitle"></span></div>
+<div id="chap"><div class="num"></div><div class="ttl"></div><div class="bar"></div></div>
+<div id="cap" aria-live="polite"></div>
+<div id="paused"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
+
+<div id="ctrl">
+  <div id="prog"></div>
+  <div class="row">
+    <button class="btn" id="bPrev" title="Предыдущая глава (←)"><svg viewBox="0 0 24 24"><path d="M6 5h2v14H6zM20 5v14L9 12z"/></svg></button>
+    <button class="btn" id="bPlay" title="Пауза (пробел)"><svg viewBox="0 0 24 24"><path id="playPath" d="M7 5h4v14H7zM13 5h4v14h-4z"/></svg></button>
+    <button class="btn" id="bNext" title="Следующая глава (→)"><svg viewBox="0 0 24 24"><path d="M16 5h2v14h-2zM4 5v14l11-7z"/></svg></button>
+    <div id="tInfo"></div>
+    <div class="sp"></div>
+    <button class="btn" id="bMenu" title="Главы"><svg viewBox="0 0 24 24"><path d="M4 6h16v2H4zm0 5h16v2H4zm0 5h16v2H4z"/></svg><span>Главы</span></button>
+    <button class="btn tog" id="bVoice" title="Озвучка (V)"><svg viewBox="0 0 24 24"><path d="M12 3a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3zm-7 9h2a5 5 0 0 0 10 0h2a7 7 0 0 1-6 6.9V21h-2v-2.1A7 7 0 0 1 5 12z"/></svg><span>Голос</span></button>
+    <button class="btn tog" id="bMusic" title="Музыка (M)"><svg viewBox="0 0 24 24"><path d="M9 17.2V5.5l11-2v11.7a3 3 0 1 1-2-2.8V7.1l-7 1.3v8.8a3 3 0 1 1-2-2.8z"/></svg><span>Музыка</span></button>
+    <button class="btn tog" id="bSfx" title="Звуковые эффекты (E)"><svg viewBox="0 0 24 24"><path d="M12 2l2.2 6.8L21 11l-6.8 2.2L12 20l-2.2-6.8L3 11l6.8-2.2z"/></svg><span>Эффекты</span></button>
+    <button class="btn tog" id="bSubs" title="Субтитры (C)"><svg viewBox="0 0 24 24"><path d="M4 5h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2zm0 2v10h16V7zm2 3h5v2H6zm7 0h5v2h-5zm-7 3h12v2H6z"/></svg><span>Субтитры</span></button>
+    <button class="btn" id="bFull" title="Полный экран (F)"><svg viewBox="0 0 24 24"><path d="M4 4h6v2H6v4H4zm10 0h6v6h-2V6h-4zM4 14h2v4h4v2H4zm14 0h2v6h-6v-2h4z"/></svg></button>
+  </div>
+</div>
+<div id="menu"></div>
+
+<div id="start">
+  <div class="st">
+    <div class="over">научно-популярный фильм</div>
+    <h1><span class="a">ЕДИНИЦА</span><span class="i">и</span><span class="b">НОЛЬ</span></h1>
+    <p class="sub">Об энтропии, стреле времени и о том, может ли Вселенная развиваться по&nbsp;спирали</p>
+    <button id="go" disabled aria-label="Смотреть фильм"><span class="ring"></span><span class="ring r2"></span><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+    <div class="go-lbl" id="goLbl">Загрузка…</div>
+    <div class="opts">
+      <label class="chip"><input type="checkbox" id="oVoice" checked><span>Озвучка голосом</span></label>
+      <label class="chip"><input type="checkbox" id="oMusic" checked><span>Музыка и эффекты</span></label>
+      <label class="chip"><input type="checkbox" id="oSubs" checked><span>Субтитры</span></label>
+    </div>
+    <div class="hint">🎧 Лучше в наушниках и на большом экране<br>Пробел — пауза · ← → — главы · F — полный экран</div>
+    <div class="vnote" id="vnote"></div>
+  </div>
+</div>
+
+<div id="end">
+  <div class="end">
+    <div class="over">конец</div>
+    <h2>Что почитать дальше</h2>
+    <ul class="books">
+      <li><b>Шон Кэрролл — «Вечность. В поисках окончательной теории времени»</b><span>Лучший общий обзор именно этой проблемы: стрела времени и низкая энтропия начала.</span></li>
+      <li><b>Роджер Пенроуз — «Циклы времени»</b><span>Конформная циклическая космология — модель, ближайшая к идее «серое становится единицей».</span></li>
+      <li><b>Джулиан Барбур — «The Janus Point» (2020)</b><span>Минимум энтропии не в начале, а посередине; стрелы времени расходятся в обе стороны.</span></li>
+      <li><b>Скотт Ааронсон — «The First Law of Complexodynamics»</b><span>Короткий пост о том, почему сложность растёт и падает, а энтропия только растёт.</span></li>
+      <li><b>Ааронсон, Кэрролл, Уэллетт — «The Coffee Automaton» (2014)</b><span>Строгая модель горба сложности при смешивании сливок и кофе.</span></li>
+    </ul>
+    <div class="ebtns"><button class="pri" id="again">↻ Смотреть снова</button><button id="endMenu">Выбрать главу</button></div>
+    <div class="credits">По мотивам диалога о природе энтропии и времени · Идея «единицы и нуля» — Алекс · Разбор — Claude<br>Вся графика, анимация, музыка и звуки генерируются кодом прямо в браузере — без видео- и аудиофайлов.</div>
+  </div>
+</div>
+
+<script>
+'use strict';
+/* =====================================================================
+   CORE: utilities, colors, drawing helpers
+   ===================================================================== */
+const W = 1600, H = 900, TAU = Math.PI * 2;
+const F = {
+  disp: "'Unbounded','Segoe UI',system-ui,sans-serif",
+  body: "'Manrope','Segoe UI',system-ui,sans-serif",
+  mono: "'JetBrains Mono',Consolas,monospace"
+};
+const COL = {
+  gold: '#ffb547', amber: '#ff7a3d', cyan: '#4fd1ff', teal: '#35f0c0', pink: '#ff4f9a',
+  violet: '#a07bff', white: '#f2f5ff', red: '#ff4d5e', green: '#5dfc9a', gray: '#9aa3b8', dim: '#8a93b0'
+};
+const clamp = (x, a = 0, b = 1) => x < a ? a : x > b ? b : x;
+const lerp = (a, b, t) => a + (b - a) * t;
+const smooth = t => { t = clamp(t); return t * t * (3 - 2 * t); };
+const eio = t => { t = clamp(t); return t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; };
+const eout = t => { t = clamp(t); return 1 - Math.pow(1 - t, 3); };
+const eback = t => { t = clamp(t); const c1 = 1.70158, c3 = c1 + 1; return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2); };
+/* appear: 0..1 after "s" seconds since an event (s<0 → not yet) */
+const ap = (s, d = 0, dur = .8) => s < 0 ? 0 : eout((s - d) / dur);
+function mulberry(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function gauss(r) { let u = 0; while (!u) u = r(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(TAU * r()); }
+function hex2rgb(h) { const n = parseInt(h.slice(1), 16); return [n >> 16 & 255, n >> 8 & 255, n & 255]; }
+function hexA(h, a) { const c = hex2rgb(h); return `rgba(${c[0]},${c[1]},${c[2]},${a})`; }
+function mixC(a, b, t) { const A = hex2rgb(a), B = hex2rgb(b); return `rgb(${Math.round(A[0] + (B[0] - A[0]) * t)},${Math.round(A[1] + (B[1] - A[1]) * t)},${Math.round(A[2] + (B[2] - A[2]) * t)})`; }
+const SUP = { '0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴', '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹', '-': '⁻' };
+const sup = s => String(s).split('').map(c => SUP[c] || c).join('');
+const comma = (x, d = 1) => x.toFixed(d).replace('.', ',');
+const LF = [0]; for (let i = 1; i <= 220; i++) LF[i] = LF[i - 1] + Math.log(i);
+const lnC = (n, k) => LF[n] - LF[k] - LF[n - k];
+const LNMAX = lnC(100, 50);
+function fmtW(lnW) {
+  const l10 = lnW / Math.LN10;
+  if (l10 < 5) return Math.round(Math.exp(lnW)).toLocaleString('ru-RU');
+  const e = Math.floor(l10), m = Math.pow(10, l10 - e);
+  return comma(m) + '·10' + sup(e);
+}
+const HAS_FILTER = typeof CanvasRenderingContext2D !== 'undefined' && 'filter' in CanvasRenderingContext2D.prototype;
+
+const spriteCache = {};
+function sprite(color) {
+  let s = spriteCache[color]; if (s) return s;
+  s = document.createElement('canvas'); s.width = s.height = 64;
+  const g = s.getContext('2d'), gr = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+  gr.addColorStop(0, 'rgba(255,255,255,1)'); gr.addColorStop(.16, hexA(color, 1)); gr.addColorStop(.42, hexA(color, .33)); gr.addColorStop(1, hexA(color, 0));
+  g.fillStyle = gr; g.fillRect(0, 0, 64, 64); spriteCache[color] = s; return s;
+}
+function glow(c, x, y, r, color, a = 1) {
+  if (a <= 0.003) return; const ga = c.globalAlpha; c.globalAlpha = ga * Math.min(1, a);
+  c.drawImage(sprite(color), x - r, y - r, 2 * r, 2 * r); c.globalAlpha = ga;
+}
+function rr(c, x, y, w, h, r) {
+  r = Math.min(r, w / 2, h / 2); c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath();
+}
+function T(c, s, x, y, o = {}) {
+  const a = o.a ?? 1; if (a <= 0.003 || s === '') return;
+  c.save(); c.globalAlpha *= a;
+  c.font = `${o.w || 600} ${o.size || 26}px ${o.f || F.body}`;
+  c.textAlign = o.al || 'center'; c.textBaseline = o.bl || 'middle';
+  if ('letterSpacing' in c) c.letterSpacing = (o.ls || 0) + 'px';
+  if (o.grad) {
+    const w = c.measureText(s).width, x0 = c.textAlign === 'center' ? x - w / 2 : c.textAlign === 'right' ? x - w : x;
+    const g = c.createLinearGradient(x0, 0, x0 + w, 0); g.addColorStop(0, o.grad[0]); g.addColorStop(1, o.grad[1]); c.fillStyle = g;
+  } else c.fillStyle = o.c || COL.white;
+  if (o.glow) { c.shadowColor = o.glow; c.shadowBlur = o.blur || 18; }
+  c.fillText(s, x, y);
+  if (o.stroke) { c.shadowBlur = 0; c.lineWidth = o.sw || 1.5; c.strokeStyle = o.stroke; c.strokeText(s, x, y); }
+  c.restore();
+}
+function tw(c, s, size, w = 600, f = F.body, ls = 0) { c.save(); c.font = `${w} ${size}px ${f}`; if ('letterSpacing' in c) c.letterSpacing = ls + 'px'; const m = c.measureText(s).width; c.restore(); return m; }
+function wrapLines(c, text, maxW, size, w = 500, f = F.body) {
+  c.save(); c.font = `${w} ${size}px ${f}`; const words = text.split(' '), out = []; let line = '';
+  for (const wd of words) { const t = line ? line + ' ' + wd : wd; if (c.measureText(t).width > maxW && line) { out.push(line); line = wd; } else line = t; }
+  if (line) out.push(line); c.restore(); return out;
+}
+function wrap(c, text, x, y, maxW, lh, o = {}) {
+  const lines = wrapLines(c, text, maxW, o.size || 20, o.w || 500, o.f || F.body);
+  lines.forEach((l, i) => T(c, l, x, y + i * lh, Object.assign({ al: 'left' }, o))); return lines.length;
+}
+function pill(c, s, x, y, o = {}) {
+  const a = o.a ?? 1; if (a <= 0.003) return 0;
+  const size = o.size || 18, px = o.px ?? 18, col = o.c || COL.white;
+  c.save(); c.globalAlpha *= a; c.font = `${o.w || 700} ${size}px ${o.f || F.body}`; if ('letterSpacing' in c) c.letterSpacing = (o.ls ?? .3) + 'px';
+  const w = c.measureText(s).width + px * 2, h = size * 1.95;
+  const x0 = o.al === 'left' ? x : o.al === 'right' ? x - w : x - w / 2;
+  rr(c, x0, y - h / 2, w, h, h / 2); c.fillStyle = o.bg || hexA(col, .1); c.fill();
+  c.lineWidth = 1.5; c.strokeStyle = o.stroke || hexA(col, .55); c.stroke();
+  if (o.glow) { c.shadowColor = hexA(col, .6); c.shadowBlur = 16; }
+  c.fillStyle = col; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(s, x0 + w / 2, y + 1);
+  c.restore(); return w;
+}
+function panel(c, x, y, w, h, o = {}) {
+  const a = o.a ?? 1; if (a <= 0.003) return;
+  c.save(); c.globalAlpha *= a; rr(c, x, y, w, h, o.r ?? 20);
+  const g = c.createLinearGradient(x, y, x, y + h); g.addColorStop(0, o.f0 || 'rgba(130,150,255,0.075)'); g.addColorStop(1, o.f1 || 'rgba(130,150,255,0.02)');
+  c.fillStyle = g; c.fill(); c.strokeStyle = o.stroke || 'rgba(170,190,255,0.16)'; c.lineWidth = o.lw || 1.3;
+  if (o.glow) { c.shadowColor = o.glow; c.shadowBlur = 26; }
+  c.stroke(); c.restore();
+}
+function arrow(c, x1, y1, x2, y2, o = {}) {
+  const a = o.a ?? 1; if (a <= 0.003) return;
+  c.save(); c.globalAlpha *= a; c.strokeStyle = c.fillStyle = o.c || COL.white; c.lineWidth = o.w || 3; c.lineCap = 'round';
+  if (o.glow) { c.shadowColor = o.glow; c.shadowBlur = 14; }
+  const ang = Math.atan2(y2 - y1, x2 - x1), hl = o.head || 14;
+  if (o.dash) c.setLineDash(o.dash);
+  c.beginPath(); c.moveTo(x1, y1); c.lineTo(x2 - Math.cos(ang) * hl * .7, y2 - Math.sin(ang) * hl * .7); c.stroke(); c.setLineDash([]);
+  c.beginPath(); c.moveTo(x2, y2); c.lineTo(x2 - Math.cos(ang - .42) * hl, y2 - Math.sin(ang - .42) * hl); c.lineTo(x2 - Math.cos(ang + .42) * hl, y2 - Math.sin(ang + .42) * hl); c.closePath(); c.fill();
+  c.restore();
+}
+function line(c, x1, y1, x2, y2, col, w = 2, a = 1, dash) {
+  if (a <= 0.003) return; c.save(); c.globalAlpha *= a; c.strokeStyle = col; c.lineWidth = w; if (dash) c.setLineDash(dash);
+  c.beginPath(); c.moveTo(x1, y1); c.lineTo(x2, y2); c.stroke(); c.restore();
+}
+function meter(c, x, y, w, v, o = {}) {
+  const a = o.a ?? 1; if (a <= 0.003) return; const h = o.h || 14;
+  c.save(); c.globalAlpha *= a; rr(c, x, y, w, h, h / 2); c.fillStyle = 'rgba(255,255,255,.07)'; c.fill();
+  const vw = Math.max(h, w * clamp(v)); const g = c.createLinearGradient(x, 0, x + w, 0);
+  g.addColorStop(0, o.c0 || COL.gold); g.addColorStop(1, o.c1 || COL.cyan);
+  rr(c, x, y, vw, h, h / 2); c.fillStyle = g; c.shadowColor = o.c1 || COL.cyan; c.shadowBlur = 14; c.fill(); c.restore();
+  if (o.label) T(c, o.label, x, y - 16, { al: 'left', size: 15, w: 700, ls: 1.5, c: 'rgba(225,232,255,.72)', a });
+  if (o.value) T(c, o.value, x + w, y - 16, { al: 'right', size: 17, f: F.mono, w: 600, c: o.vc || COL.white, a });
+}
+function vmeter(c, x, y, w, h, v, o = {}) {
+  const a = o.a ?? 1; if (a <= 0.003) return;
+  c.save(); c.globalAlpha *= a; rr(c, x, y, w, h, w / 2); c.fillStyle = 'rgba(255,255,255,.06)'; c.fill(); c.strokeStyle = 'rgba(255,255,255,.14)'; c.lineWidth = 1; c.stroke();
+  const vh2 = Math.max(w, h * clamp(v)); const g = c.createLinearGradient(0, y + h, 0, y);
+  g.addColorStop(0, o.c0 || COL.gold); g.addColorStop(1, o.c1 || COL.cyan);
+  rr(c, x, y + h - vh2, w, vh2, w / 2); c.fillStyle = g; c.shadowColor = o.c1 || COL.cyan; c.shadowBlur = 18; c.fill(); c.restore();
+  if (o.label) T(c, o.label, x + w / 2, y - 28, { size: 14, w: 800, ls: 3, c: o.lc || 'rgba(225,232,255,.75)', a });
+  T(c, 'макс', x + w + 12, y + 6, { al: 'left', size: 13, f: F.mono, c: 'rgba(225,232,255,.4)', a });
+  T(c, 'мин', x + w + 12, y + h - 6, { al: 'left', size: 13, f: F.mono, c: 'rgba(225,232,255,.4)', a });
+}
+function axes(c, x, y, w, h, o = {}) {
+  const a = o.a ?? 1; if (a <= 0.003) return;
+  arrow(c, x, y + h, x + w + 18, y + h, { c: 'rgba(220,230,255,.55)', w: 2, head: 11, a });
+  arrow(c, x, y + h, x, y - 18, { c: 'rgba(220,230,255,.55)', w: 2, head: 11, a });
+  if (o.xl) T(c, o.xl, x + w + 14, y + h + 24, { al: 'right', size: 15, w: 600, c: 'rgba(220,230,255,.6)', a });
+  if (o.yl) T(c, o.yl, x + 12, y - 16, { al: 'left', size: 15, w: 600, c: 'rgba(220,230,255,.6)', a });
+}
+function poly(c, pts, col, w = 3, a = 1, o = {}) {
+  if (a <= 0.003 || pts.length < 2) return; c.save(); c.globalAlpha *= a; c.strokeStyle = col; c.lineWidth = w; c.lineJoin = c.lineCap = 'round';
+  if (o.dash) c.setLineDash(o.dash); if (o.glow) { c.shadowColor = o.glow; c.shadowBlur = 14; }
+  c.beginPath(); c.moveTo(pts[0][0], pts[0][1]); for (let i = 1; i < pts.length; i++) c.lineTo(pts[i][0], pts[i][1]); c.stroke(); c.restore();
+}
+function cross(c, x, y, r, col, a = 1, w = 5) { line(c, x - r, y - r, x + r, y + r, col, w, a); line(c, x + r, y - r, x - r, y + r, col, w, a); }
+function check(c, x, y, r, col, a = 1) { if (a <= .003) return; c.save(); c.globalAlpha *= a; c.strokeStyle = col; c.lineWidth = 5; c.lineCap = c.lineJoin = 'round'; c.beginPath(); c.moveTo(x - r, y); c.lineTo(x - r * .3, y + r * .7); c.lineTo(x + r, y - r * .7); c.stroke(); c.restore(); }
+function strike(c, x1, y, x2, col, p, a = 1) { if (p <= 0) return; line(c, x1, y, lerp(x1, x2, clamp(p)), y, col, 4, a); }
+
+/* =====================================================================
+   AUDIO: generative music + synthesized sound effects (Web Audio)
+   ===================================================================== */
+const mtof = m => 440 * Math.pow(2, (m - 69) / 12);
+const CHORDS = [
+  [45, 52, 55, 59, 60], // Am9
+  [41, 52, 55, 57, 60], // Fmaj9
+  [36, 52, 55, 59, 62], // Cmaj9
+  [43, 50, 55, 57, 59], // Gadd9
+  [40, 50, 54, 55, 59], // Em9
+  [38, 48, 52, 53, 57]  // Dm9
+];
+const AudioE = {
+  ctx: null, on: { music: true, sfx: true }, speaking: false, chord: CHORDS[0],
+  init() {
+    if (this.ctx) return;
+    const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return;
+    const C = this.ctx = new AC();
+    this.master = C.createGain(); this.master.gain.value = .9;
+    const comp = C.createDynamicsCompressor(); comp.threshold.value = -16; comp.ratio.value = 3.5; comp.attack.value = .01; comp.release.value = .25;
+    this.master.connect(comp); comp.connect(C.destination);
+    this.rev = C.createConvolver(); this.rev.buffer = this.ir(3.6, 2.4);
+    const rg = C.createGain(); rg.gain.value = .5; this.rev.connect(rg); rg.connect(this.master);
+    this.mus = C.createGain(); this.mus.gain.value = 0; this.mus.connect(this.master);
+    const ms = C.createGain(); ms.gain.value = .55; this.mus.connect(ms); ms.connect(this.rev);
+    this.fx = C.createGain(); this.fx.gain.value = this.on.sfx ? .85 : 0; this.fx.connect(this.master);
+    const fs = C.createGain(); fs.gain.value = .35; this.fx.connect(fs); fs.connect(this.rev);
+    this.noise = this.makeNoise(2.5);
+    this.startPad();
+    this.updateMusic(2);
+  },
+  resume() { if (this.ctx && this.ctx.state !== 'running') this.ctx.resume(); },
+  suspend() { if (this.ctx && this.ctx.state === 'running') this.ctx.suspend(); },
+  ir(dur, decay) {
+    const C = this.ctx, n = C.sampleRate * dur | 0, b = C.createBuffer(2, n, C.sampleRate);
+    for (let ch = 0; ch < 2; ch++) { const d = b.getChannelData(ch); for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / n, decay); }
+    return b;
+  },
+  makeNoise(dur) { const C = this.ctx, n = C.sampleRate * dur | 0, b = C.createBuffer(1, n, C.sampleRate), d = b.getChannelData(0); for (let i = 0; i < n; i++) d[i] = Math.random() * 2 - 1; return b; },
+  startPad() {
+    const C = this.ctx;
+    this.padF = C.createBiquadFilter(); this.padF.type = 'lowpass'; this.padF.frequency.value = 820; this.padF.Q.value = .7;
+    const lfo = C.createOscillator(); lfo.frequency.value = .045; const lg = C.createGain(); lg.gain.value = 360; lfo.connect(lg); lg.connect(this.padF.frequency); lfo.start();
+    const pg = C.createGain(); pg.gain.value = 1; this.padF.connect(pg); pg.connect(this.mus);
+    this.voices = [];
+    this.chord.forEach((m, i) => {
+      const g = C.createGain(); g.gain.value = i === 0 ? .075 : .03; g.connect(i === 0 ? pg : this.padF);
+      const oscs = (i === 0 ? [0, 1200] : [-7, 7]).map((dt, k) => {
+        const o = C.createOscillator(); o.type = i === 0 ? (k ? 'triangle' : 'sine') : 'sawtooth';
+        o.detune.value = dt + (Math.random() * 4 - 2); o.frequency.value = mtof(m); o.connect(g); o.start(); return o;
+      });
+      const al = C.createOscillator(); al.frequency.value = .05 + Math.random() * .09; const alg = C.createGain(); alg.gain.value = i === 0 ? .02 : .012; al.connect(alg); alg.connect(g.gain); al.start();
+      this.voices.push(oscs);
+    });
+    setInterval(() => this.sparkle(), 1400);
+  },
+  setMood(k) {
+    this.chord = CHORDS[((k % CHORDS.length) + CHORDS.length) % CHORDS.length];
+    if (!this.ctx) return; const t = this.ctx.currentTime;
+    this.voices.forEach((oscs, i) => oscs.forEach(o => o.frequency.setTargetAtTime(mtof(this.chord[i]), t, 1.4)));
+  },
+  level() { return this.on.music ? (this.speaking ? .34 : .6) : 0; },
+  updateMusic(tc = .6) { if (this.ctx) this.mus.gain.setTargetAtTime(this.level(), this.ctx.currentTime, tc); },
+  duck(on) { this.speaking = on; this.updateMusic(.4); },
+  setSfx(on) { this.on.sfx = on; if (this.ctx) this.fx.gain.setTargetAtTime(on ? .85 : 0, this.ctx.currentTime, .05); },
+  sparkle() {
+    if (!this.ctx || !this.on.music || this.ctx.state !== 'running' || !E.playing || Math.random() < .4) return;
+    const C = this.ctx, t = C.currentTime, ch = this.chord;
+    const note = ch[1 + (Math.random() * 4 | 0)] + 24 + (Math.random() < .3 ? 12 : 0);
+    const o = C.createOscillator(); o.type = 'triangle'; o.frequency.value = mtof(note);
+    const g = C.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(this.speaking ? .012 : .022, t + .02); g.gain.exponentialRampToValueAtTime(.0001, t + 2.4);
+    o.connect(g); this.pan(g, Math.random() * 1.6 - .8).connect(this.mus); o.start(t); o.stop(t + 2.5);
+  },
+  pan(node, p) { if (!this.ctx.createStereoPanner) return node; const s = this.ctx.createStereoPanner(); s.pan.value = p; node.connect(s); return s; },
+  play(name, o = {}) { if (!this.ctx || !this.on.sfx || this.ctx.state !== 'running') return; const f = this['s_' + name]; if (f) try { f.call(this, this.ctx.currentTime + (o.delay || 0), o); } catch (e) { } },
+  nsrc(t, dur) { const s = this.ctx.createBufferSource(); s.buffer = this.noise; s.start(t, Math.random() * .5); s.stop(t + dur); return s; },
+  env(t, peak, a, d) { const g = this.ctx.createGain(); g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(peak, t + a); g.gain.exponentialRampToValueAtTime(.0001, t + a + d); return g; },
+  osc(type, f, t, dur) { const o = this.ctx.createOscillator(); o.type = type; o.frequency.setValueAtTime(f, t); o.start(t); o.stop(t + dur); return o; },
+  filt(type, f, q = 1) { const b = this.ctx.createBiquadFilter(); b.type = type; b.frequency.value = f; b.Q.value = q; return b; },
+  s_whoosh(t, o) {
+    const C = this.ctx, d = o.d || 1.3, s = this.nsrc(t, d + .1), f = this.filt('bandpass', 250, 1.3);
+    f.frequency.setValueAtTime(220, t); f.frequency.exponentialRampToValueAtTime(2800, t + d * .45); f.frequency.exponentialRampToValueAtTime(380, t + d);
+    const g = this.env(t, o.v || .32, d * .4, d * .6); s.connect(f); f.connect(g);
+    let out = g; if (C.createStereoPanner) { const p = C.createStereoPanner(); p.pan.setValueAtTime(-.8, t); p.pan.linearRampToValueAtTime(.8, t + d); g.connect(p); out = p; }
+    out.connect(this.fx);
+  },
+  s_boom(t, o) {
+    const v = o.v || .7, os = this.osc('sine', 95, t, 3); os.frequency.exponentialRampToValueAtTime(26, t + 1.6);
+    const g = this.env(t, v, .01, 2.6); os.connect(g); g.connect(this.fx);
+    const n = this.nsrc(t, 1.4), f = this.filt('lowpass', 420), g2 = this.env(t, v * .55, .005, 1.2); n.connect(f); f.connect(g2); g2.connect(this.fx);
+  },
+  s_ping(t, o) {
+    const f = o.f || 1320, v = o.v || .16;
+    [[f, 1], [f * 2.01, .35], [f * 3.02, .12]].forEach(([fr, k]) => { const os = this.osc('sine', fr, t, 3); const g = this.env(t, v * k, .004, 2.6); os.connect(g); this.pan(g, o.pan || 0).connect(this.fx); });
+  },
+  s_blip(t, o) { const os = this.osc('sine', o.f || 880, t, .3); const g = this.env(t, o.v || .07, .004, .14); os.connect(g); this.pan(g, o.pan || 0).connect(this.fx); },
+  s_drip(t, o) { const os = this.osc('sine', 1500, t, .5); os.frequency.exponentialRampToValueAtTime(380, t + .16); const g = this.env(t, o.v || .18, .004, .3); os.connect(g); g.connect(this.fx); },
+  s_tick(t, o) { const n = this.nsrc(t, .05), f = this.filt('bandpass', o.f || 3200, 6), g = this.env(t, o.v || .08, .002, .04); n.connect(f); f.connect(g); this.pan(g, o.pan || 0).connect(this.fx); },
+  s_clack(t, o) { const n = this.nsrc(t, .1), f = this.filt('bandpass', 2400, 4), g = this.env(t, o.v || .3, .001, .07); n.connect(f); f.connect(g); this.pan(g, o.pan || 0).connect(this.fx); const os = this.osc('sine', 1900, t, .08), g2 = this.env(t, .07, .001, .04); os.connect(g2); g2.connect(this.fx); },
+  s_rewind(t, o) {
+    const d = o.d || 1.8, os = this.osc('sawtooth', 700, t, d); os.frequency.linearRampToValueAtTime(160, t + d);
+    const lfo = this.osc('sine', 11, t, d), lg = this.ctx.createGain(); lg.gain.value = 60; lfo.connect(lg); lg.connect(os.frequency);
+    const f = this.filt('bandpass', 1400, 1.2), g = this.env(t, .09, .05, d - .05); os.connect(f); f.connect(g); g.connect(this.fx);
+    const n = this.nsrc(t, d), nf = this.filt('highpass', 3000), ng = this.env(t, .06, .05, d); n.connect(nf); nf.connect(ng); ng.connect(this.fx);
+  },
+  s_ffwd(t, o) {
+    const d = o.d || 1.4, os = this.osc('sawtooth', 200, t, d); os.frequency.linearRampToValueAtTime(900, t + d);
+    const f = this.filt('bandpass', 1500, 1.2), g = this.env(t, .07, .05, d - .05); os.connect(f); f.connect(g); g.connect(this.fx);
+  },
+  s_stamp(t) {
+    const os = this.osc('sine', 150, t, .5); os.frequency.exponentialRampToValueAtTime(48, t + .25); const g = this.env(t, .6, .003, .35); os.connect(g); g.connect(this.fx);
+    const n = this.nsrc(t, .2), f = this.filt('lowpass', 1100), g2 = this.env(t, .35, .002, .15); n.connect(f); f.connect(g2); g2.connect(this.fx);
+  },
+  s_zap(t) {
+    const os = this.osc('square', 2200, t, .45); os.frequency.exponentialRampToValueAtTime(110, t + .4);
+    const f = this.filt('lowpass', 3000), g = this.env(t, .09, .003, .4); os.connect(f); f.connect(g); g.connect(this.fx);
+    const n = this.nsrc(t, .3), g2 = this.env(t, .12, .002, .25); n.connect(g2); g2.connect(this.fx);
+  },
+  s_shimmer(t, o) {
+    const ch = this.chord; [0, 1, 2, 3, 4, 2].forEach((k, i) => {
+      const f = mtof(ch[k] + 36 + (i > 4 ? 12 : 0)), tt = t + i * .07, os = this.osc('triangle', f, tt, 3), g = this.env(tt, (o.v || .05), .01, 2.5);
+      os.connect(g); this.pan(g, -.7 + i * .28).connect(this.fx);
+    });
+  },
+  s_pop(t, o) { const os = this.osc('sine', o.f || 320, t, .25); os.frequency.exponentialRampToValueAtTime((o.f || 320) * 2.8, t + .09); const g = this.env(t, o.v || .13, .003, .16); os.connect(g); g.connect(this.fx); },
+  s_riser(t, o) {
+    const d = o.d || 2.2, n = this.nsrc(t, d), f = this.filt('bandpass', 200, 2); f.frequency.setValueAtTime(200, t); f.frequency.exponentialRampToValueAtTime(5000, t + d);
+    const g = this.ctx.createGain(); g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(o.v || .22, t + d * .95); g.gain.exponentialRampToValueAtTime(.0001, t + d + .05);
+    n.connect(f); f.connect(g); g.connect(this.fx);
+  },
+  s_cascade(t, o) { const ch = this.chord, n = o.n || 12; for (let i = 0; i < n; i++) this.s_blip(t + i * (o.dt || .07) + Math.random() * .03, { f: mtof(ch[1 + (i % 4)] + 24 + (i % 3) * 12), v: .045, pan: Math.random() * 1.4 - .7 }); },
+  s_freeze(t) { const ch = this.chord; [4, 3, 2, 1].forEach((k, i) => { const tt = t + i * .12, os = this.osc('sine', mtof(ch[k] + 36), tt, 2.4), g = this.env(tt, .05, .01, 2); os.connect(g); g.connect(this.fx); }); }
+};
+
+/* =====================================================================
+   VOICE: browser speech synthesis (Russian voice), optional
+   ===================================================================== */
+function speechText(s) {
+  return s.replace(/\*/g, '').replace(/[«»"]/g, '').replace(/\s—\s/g, ', ').replace(/→/g, ' ').replace(/≈/g, ' примерно ')
+    .replace(/·/g, ' ').replace(/…/g, '.').replace(/\s+/g, ' ').trim();
+}
+const Voice = {
+  on: true, v: null, tok: 0, keep: [], done: true, doneAt: 0, deadline: 0, rate: 1.03,
+  supported: 'speechSynthesis' in window,
+  load() {
+    if (!this.supported) return;
+    const all = speechSynthesis.getVoices() || [];
+    const ru = all.filter(v => /^ru([-_]|$)/i.test(v.lang));
+    const score = v => (/natural|online|neural/i.test(v.name) ? 10 : 0) + (/google/i.test(v.name) ? 6 : 0) + (/svetlana|dariya|milena|irina|yandex/i.test(v.name) ? 2 : 0);
+    ru.sort((a, b) => score(b) - score(a));
+    this.v = ru[0] || null;
+    if (this.v) this.rate = /natural|online|neural/i.test(this.v.name) ? 1.08 : 1.1;
+    if (typeof UI !== 'undefined') UI.voiceAvail(!!this.v);
+  },
+  active() { return this.on && this.supported && !!this.v; },
+  say(text) {
+    this.cancel();
+    if (!this.active() || !text) return;
+    const clean = speechText(text), parts = clean.match(/[^.!?]+[.!?]*\s*/g) || [clean];
+    const tok = this.tok; this.done = false; this.deadline = performance.now() + (clean.length / 11 + 3) * 1000 * 1.6;
+    AudioE.duck(true);
+    parts.forEach((p, i) => {
+      const u = new SpeechSynthesisUtterance(p.trim()); u.voice = this.v; u.lang = this.v.lang; u.rate = this.rate; u.pitch = 1; u.volume = 1;
+      if (i === parts.length - 1) u.onend = u.onerror = () => { if (this.tok === tok) { this.done = true; this.doneAt = performance.now(); AudioE.duck(false); } };
+      this.keep.push(u); speechSynthesis.speak(u);
+    });
+  },
+  cancel() {
+    this.tok++; this.keep = []; this.done = true; this.doneAt = 0;
+    if (this.supported) try { speechSynthesis.cancel(); } catch (e) { }
+    AudioE.duck(false);
+  },
+  finished() {
+    if (this.done) return performance.now() - this.doneAt > 380;
+    if (performance.now() > this.deadline) { this.done = true; this.doneAt = 0; AudioE.duck(false); return true; }
+    return false;
+  }
+};
+if (Voice.supported) { Voice.load(); speechSynthesis.onvoiceschanged = () => Voice.load(); }
+
+/* =====================================================================
+   BACKGROUND & POST FX
+   ===================================================================== */
+const STARS = (() => { const r = mulberry(3); return Array.from({ length: 260 }, () => ({ x: r(), y: r(), s: r() * 1.5 + .3, p: r() * TAU, f: .4 + r() * 1.7 })); })();
+function neb(c, x, y, r, col) { const g = c.createRadialGradient(x, y, 0, x, y, r); g.addColorStop(0, col); g.addColorStop(1, 'rgba(0,0,0,0)'); c.fillStyle = g; c.fillRect(x - r, y - r, 2 * r, 2 * r); }
+function drawBG(c, w, h, t) {
+  const g = c.createRadialGradient(w * .5, h * .42, 0, w * .5, h * .5, Math.hypot(w, h) * .62);
+  g.addColorStop(0, '#0c1233'); g.addColorStop(.5, '#070a1c'); g.addColorStop(1, '#020309'); c.fillStyle = g; c.fillRect(0, 0, w, h);
+  c.globalCompositeOperation = 'lighter'; const m = Math.max(w, h);
+  neb(c, w * (.22 + .03 * Math.sin(t * .05)), h * .28, m * .45, 'rgba(110,70,255,0.075)');
+  neb(c, w * (.8 + .03 * Math.cos(t * .04)), h * .75, m * .5, 'rgba(0,180,255,0.055)');
+  neb(c, w * .55, h * (.1 + .02 * Math.sin(t * .03)), m * .3, 'rgba(255,120,60,0.03)');
+  c.globalCompositeOperation = 'source-over';
+  c.fillStyle = '#e2eaff';
+  for (const s of STARS) { c.globalAlpha = .12 + .5 * (.5 + .5 * Math.sin(t * s.f + s.p)); c.fillRect(s.x * w, s.y * h, s.s, s.s); }
+  c.globalAlpha = 1;
+}
+const GRAIN = [0, 1, 2, 3].map(() => {
+  const cv = document.createElement('canvas'); cv.width = cv.height = 128; const g = cv.getContext('2d'), d = g.createImageData(128, 128);
+  for (let i = 0; i < d.data.length; i += 4) { const v = Math.random() * 255 | 0; d.data[i] = d.data[i + 1] = d.data[i + 2] = v; d.data[i + 3] = 255; }
+  g.putImageData(d, 0, 0); return cv;
+});
+</script>
+<script>
+'use strict';
+/* =====================================================================
+   SCENES — part 1
+   Each scene: {id, chapter, mood, beats:[{t, v?, d?, sfx?}], init, update, draw, onBeat}
+   S.s(k) → seconds since beat k started (−1 if not yet)
+   ===================================================================== */
+const SCENES = [];
+const scene = o => (SCENES.push(o), o);
+const once = (S, key) => { if (S[key]) return false; S[key] = true; return true; };
+
+/* ---------------- shared: glyph sampling & intro particles ---------------- */
+let GLYPH = null, INTRO_P = null;
+function sampleGlyph() {
+  const cv = document.createElement('canvas'); cv.width = W; cv.height = H; const g = cv.getContext('2d');
+  g.fillStyle = '#fff'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.font = `900 430px ${F.disp}`;
+  g.fillText('1', 600, 360); g.fillText('0', 1010, 360);
+  const d = g.getImageData(0, 0, W, H).data, pts = [];
+  for (let y = 0; y < H; y += 4) for (let x = 0; x < W; x += 4) if (d[(y * W + x) * 4 + 3] > 128) pts.push([x, y, x < 800 ? 0 : 1]);
+  return pts.length ? pts : [[600, 360, 0], [1010, 360, 1]];
+}
+function introParticles() {
+  if (INTRO_P) return INTRO_P; if (!GLYPH) GLYPH = sampleGlyph();
+  const r = mulberry(11), P = [];
+  for (let i = 0; i < 1500; i++) {
+    const g = GLYPH[(r() * GLYPH.length) | 0], rad = Math.pow(r(), .75) * 440 + 12, arm = r() < .5 ? 0 : 1;
+    P.push({ fx: r() * W, fy: r() * H, ph: r() * TAU, sp: .15 + r() * .4, gx: g[0] + (r() - .5) * 3, gy: g[1] + (r() - .5) * 3, gc: g[2],
+      sr: rad, sth: arm * Math.PI + 2.4 * Math.log(1 + rad / 60) + (r() - .5) * .6, sz: 5 + r() * 7, tw: r() * TAU });
+  }
+  return (INTRO_P = P);
+}
+function spiralXY(p, t, cx, cy, tilt = .5) { const th = p.sth + t * (.08 + .07 * Math.exp(-p.sr / 200)); return [cx + Math.cos(th) * p.sr, cy + Math.sin(th) * p.sr * tilt]; }
+function spiralCol(p) { return p.sr < 130 ? COL.gold : p.sr < 270 ? COL.pink : COL.cyan; }
+
+/* ================= 0. PROLOGUE ================= */
+scene({
+  id: 'intro', title: 'Пролог', mood: 0, lead: .6,
+  beats: [
+    { t: '', d: 6.8, sfx: 'boom' },
+    { t: 'Разбитая чашка не собирается обратно. Сливки в кофе не отделяются сами.' },
+    { t: 'Мы помним прошлое, но не помним будущее. У времени есть *направление*.' },
+    { t: 'Откуда оно взялось? И почему в самом начале мир был так невероятно упорядочен?', d: 5 }
+  ],
+  init(S) { introParticles(); },
+  update(dt, S) { if (S.s(0) > 2.5 && once(S, 'sh')) AudioE.play('shimmer'); if (S.s(1) > .5 && once(S, 'sw')) AudioE.play('whoosh', { d: 2.4, v: .18 }); },
+  draw(c, S) {
+    const P = introParticles(), t = S.t, s0 = S.s(0), s1 = S.s(1), s2 = S.s(2), s3 = S.s(3);
+    const k2 = ap(s1, .4, 3.8), k1 = Math.max(0, Math.min(ap(s0, .6, 3.2) * (1 - ap(s1, .2, 3)), 1 - k2)), kf = Math.max(0, 1 - k1 - k2);
+    c.globalCompositeOperation = 'lighter';
+    glow(c, 600, 360, 330, COL.gold, .18 * k1); glow(c, 1010, 360, 350, COL.cyan, .18 * k1);
+    glow(c, 800, 380, 300, COL.violet, .28 * k2); glow(c, 800, 380, 110, COL.gold, .5 * k2);
+    for (const p of P) {
+      const fx = p.fx + Math.sin(t * p.sp + p.ph) * 70, fy = p.fy + Math.cos(t * p.sp * .8 + p.ph * 1.7) * 45;
+      let x = fx * kf + p.gx * k1, y = fy * kf + p.gy * k1;
+      if (k2 > 0) { const sp = spiralXY(p, t, 800, 380); x += sp[0] * k2; y += sp[1] * k2; }
+      const col = k1 > .35 && k1 >= k2 ? (p.gc ? COL.cyan : COL.gold) : k2 > .35 ? spiralCol(p) : '#8fa3ff';
+      const tw = .55 + .45 * Math.sin(t * 2 + p.tw);
+      glow(c, x, y, p.sz * (k1 > .35 ? .75 : 1), col, .3 + .45 * tw);
+    }
+    c.globalCompositeOperation = 'source-over';
+    const ta = ap(s0, 2.4, 1.6) * (1 - ap(s1, 0, 1.2));
+    T(c, 'ЕДИНИЦА  И  НОЛЬ', 800, 680, { f: F.disp, w: 800, size: 64, ls: 10, a: ta, grad: [COL.gold, COL.cyan], glow: 'rgba(255,190,110,.35)', blur: 34 });
+    T(c, 'фильм о стреле времени, энтропии и спирали Вселенной', 800, 744, { size: 22, w: 500, ls: 3, c: 'rgba(220,230,255,.78)', a: ta * ap(s0, 3.2, 1.4) });
+    const aa = ap(s2, .2, 1.2) * (1 - ap(s3, .4, 1));
+    if (aa > 0) {
+      const p = eout(clamp((s2 - .2) / 1.8));
+      c.save(); c.globalAlpha *= aa; const g = c.createLinearGradient(240, 0, 1360, 0); g.addColorStop(0, 'rgba(255,181,71,.1)'); g.addColorStop(1, COL.cyan); c.restore();
+      arrow(c, 240, 690, 240 + 1120 * p, 690, { c: COL.white, w: 3, head: 20, a: aa, glow: 'rgba(79,209,255,.8)' });
+      T(c, 'ПРОШЛОЕ', 240, 655, { al: 'left', f: F.disp, size: 16, w: 500, ls: 4, c: COL.gold, a: aa });
+      T(c, 'БУДУЩЕЕ', 1360, 655, { al: 'right', f: F.disp, size: 16, w: 500, ls: 4, c: COL.cyan, a: aa * ap(s2, 1.2, .8) });
+      T(c, 'стрела времени', 800, 722, { size: 18, w: 600, ls: 2, c: 'rgba(220,230,255,.7)', a: aa * ap(s2, .8, .8) });
+    }
+    const qa = ap(s3, .6, 1.5);
+    if (qa > 0) { c.globalCompositeOperation = 'lighter'; glow(c, 800, 380, 95 + 12 * Math.sin(t * 3), COL.white, .7 * qa); c.globalCompositeOperation = 'source-over'; T(c, '?', 800, 384, { f: F.disp, w: 800, size: 60, a: qa, c: '#0b0f24' }); }
+  }
+});
+
+/* ================= 1. COFFEE ================= */
+class Coffee {
+  constructor(seed = 7, n = 3400) {
+    this.n = n; this.seed = seed; this.X = new Float32Array(n); this.Y = new Float32Array(n);
+    this.off = document.createElement('canvas'); this.off.width = this.off.height = 200; this.oc = this.off.getContext('2d');
+    const r = mulberry(99), ux = new Float32Array(n), uy = new Float32Array(n);
+    for (let i = 0; i < n; i++) { const a = r() * TAU, d = Math.sqrt(r()) * .97; ux[i] = Math.cos(a) * d; uy[i] = Math.sin(a) * d; }
+    this.Hmax = this.hXY(ux, uy, 1);
+    this.reset();
+  }
+  reset() {
+    const r = this.r = mulberry(this.seed);
+    for (let i = 0; i < this.n; i++) { const a = r() * TAU, d = Math.sqrt(r()); this.X[i] = -.1 + Math.cos(a) * d * .52; this.Y[i] = -.33 + Math.sin(a) * d * .44; }
+    this.tau = 0; this.hist = []; this.fc = 0; this.record(); this.H0 = this.hXY(this.X, this.Y, 1);
+  }
+  hXY(X, Y, k) {
+    const B = 14, cnt = new Float32Array(B * B), n = this.n;
+    for (let i = 0; i < n; i++) { let bx = ((X[i] * k + 1) * .5 * B) | 0, by = ((Y[i] * k + 1) * .5 * B) | 0; bx = bx < 0 ? 0 : bx >= B ? B - 1 : bx; by = by < 0 ? 0 : by >= B ? B - 1 : by; cnt[by * B + bx]++; }
+    let h = 0; for (let j = 0; j < cnt.length; j++) if (cnt[j] > 0) { const p = cnt[j] / n; h -= p * Math.log(p); } return h;
+  }
+  entropy(snap) { const h = snap ? this.hXY(snap.x, snap.y, 1 / 30000) : this.hXY(this.X, this.Y, 1); return clamp((h - this.H0) / (this.Hmax - this.H0)); }
+  psi(x, y, t) {
+    const f = 1 - x * x - y * y; if (f <= 0) return 0;
+    return f * f * (.9 * Math.sin(2.1 * x + .7 * t) * Math.sin(1.7 * y - .5 * t + 1.3) + .6 * Math.sin(3.3 * x - 1.1 * t + 2) * Math.sin(2.9 * y + .8 * t)
+      + .35 * Math.sin(5.1 * x + 1.7 * t + .4) * Math.sin(4.7 * y - 1.3 * t + 2.2) + .9);
+  }
+  amp(t) { return smooth((t - .8) / 2.2) * (1 - .8 * smooth((t - 11) / 6)); }
+  dif(t) { return .00012 + .0085 * smooth((t - 10) / 8); }
+  step(dt) {
+    const n = this.n, X = this.X, Y = this.Y, r = this.r, sub = Math.max(1, Math.ceil(dt / .02)), h = dt / sub, e = .003;
+    for (let s = 0; s < sub; s++) {
+      this.tau += h; const t = this.tau, A = this.amp(t) * .22, sd = Math.sqrt(2 * this.dif(t) * h);
+      for (let i = 0; i < n; i++) {
+        let x = X[i], y = Y[i];
+        if (A > 1e-4) {
+          const u = (this.psi(x, y + e, t) - this.psi(x, y - e, t)) / (2 * e), v = -(this.psi(x + e, y, t) - this.psi(x - e, y, t)) / (2 * e);
+          x += u * A * h; y += v * A * h;
+        }
+        x += gauss(r) * sd; y += gauss(r) * sd;
+        const d2 = x * x + y * y; if (d2 > .9409) { const d = Math.sqrt(d2), k = Math.max(0, 1.94 - d) / d; x *= k; y *= k; }
+        X[i] = x; Y[i] = y;
+      }
+    }
+    if (++this.fc % 2 === 0 && this.hist.length < 900) this.record();
+  }
+  record() { const x = new Int16Array(this.n), y = new Int16Array(this.n); for (let i = 0; i < this.n; i++) { x[i] = this.X[i] * 30000; y[i] = this.Y[i] * 30000; } this.hist.push({ x, y, tau: this.tau }); }
+  paint(snap) {
+    const oc = this.oc, n = this.n, S2 = 100, k = 99;
+    oc.globalCompositeOperation = 'source-over'; oc.clearRect(0, 0, 200, 200); oc.globalCompositeOperation = 'lighter'; oc.fillStyle = 'rgba(255,238,214,0.26)';
+    if (snap) { const q = k / 30000; for (let i = 0; i < n; i++) oc.fillRect(S2 + snap.x[i] * q - 1.5, S2 + snap.y[i] * q - 1.5, 3, 3); }
+    else for (let i = 0; i < n; i++) oc.fillRect(S2 + this.X[i] * k - 1.5, S2 + this.Y[i] * k - 1.5, 3, 3);
+  }
+  drawInto(c, cx, cy, R, snap) {
+    this.paint(snap); c.save(); if (HAS_FILTER) c.filter = 'blur(' + (R / 95).toFixed(1) + 'px)'; c.imageSmoothingEnabled = true; c.drawImage(this.off, cx - R, cy - R, 2 * R, 2 * R); c.restore();
+  }
+}
+function drawCup(c, cx, cy, R, inner) {
+  c.save();
+  let g = c.createRadialGradient(cx + R * .06, cy + R * .1, R * .95, cx, cy, R * 1.62);
+  g.addColorStop(0, 'rgba(0,0,0,.55)'); g.addColorStop(.22, 'rgba(235,228,220,.15)'); g.addColorStop(.8, 'rgba(235,228,220,.06)'); g.addColorStop(1, 'rgba(235,228,220,0)');
+  c.fillStyle = g; c.beginPath(); c.arc(cx, cy, R * 1.62, 0, TAU); c.fill();
+  c.strokeStyle = 'rgba(240,235,228,.13)'; c.lineWidth = 2; c.beginPath(); c.arc(cx, cy, R * 1.44, 0, TAU); c.stroke();
+  c.save(); c.translate(cx + R * 1.02, cy + R * .02); c.rotate(.32);
+  const hg = c.createLinearGradient(0, -R * .2, 0, R * .2); hg.addColorStop(0, '#f6f1ea'); hg.addColorStop(1, '#8f857c');
+  c.strokeStyle = hg; c.lineWidth = R * .08; rr(c, R * .02, -R * .13, R * .36, R * .26, R * .13); c.stroke(); c.restore();
+  g = c.createLinearGradient(cx - R, cy - R, cx + R, cy + R); g.addColorStop(0, '#fffdf9'); g.addColorStop(.5, '#e2dbd2'); g.addColorStop(1, '#8a8078');
+  c.fillStyle = g; c.beginPath(); c.arc(cx, cy, R * 1.09, 0, TAU); c.fill();
+  c.save(); c.beginPath(); c.arc(cx, cy, R, 0, TAU); c.clip();
+  g = c.createRadialGradient(cx - R * .2, cy - R * .25, R * .1, cx, cy, R); g.addColorStop(0, '#4a2711'); g.addColorStop(1, '#190a03');
+  c.fillStyle = g; c.fillRect(cx - R, cy - R, 2 * R, 2 * R);
+  inner && inner();
+  g = c.createRadialGradient(cx, cy, R * .76, cx, cy, R); g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, 'rgba(0,0,0,.55)');
+  c.fillStyle = g; c.fillRect(cx - R, cy - R, 2 * R, 2 * R);
+  c.globalCompositeOperation = 'lighter'; g = c.createRadialGradient(cx - R * .45, cy - R * .5, 0, cx - R * .45, cy - R * .5, R * .55);
+  g.addColorStop(0, 'rgba(255,255,255,.09)'); g.addColorStop(1, 'rgba(255,255,255,0)'); c.fillStyle = g; c.fillRect(cx - R, cy - R, 2 * R, 2 * R);
+  c.restore();
+  c.strokeStyle = 'rgba(255,255,255,.6)'; c.lineWidth = 1.5; c.beginPath(); c.arc(cx, cy, R * 1.005, Math.PI * 1.05, Math.PI * 1.7); c.stroke();
+  c.restore();
+}
+const fmtTime = s => '00:' + (s < 10 ? '0' : '') + comma(Math.max(0, s));
+
+scene({
+  id: 'coffee', chapter: 'Стрела времени', mood: 1,
+  beats: [
+    { t: 'Капля сливок в чашке кофе. Сначала всё просто: здесь белое, там чёрное.', d: 6, sfx: 'drip' },
+    { t: 'Потом появляются завитки, вихри, узоры…', d: 7 },
+    { t: '…и наконец всё становится ровным. Перемешанное *само не разделяется*.', d: 8 },
+    { t: 'Прокрутите плёнку назад — и любой зритель скажет: *так не бывает*.', d: 5.8 },
+    { t: 'Но почему? Каждое отдельное столкновение молекул одинаково правдоподобно и вперёд, и назад. Откуда же у времени *стрела*?', d: 5 }
+  ],
+  init(S) { S.cf = new Coffee(7); S.mode = 'live'; S.pi = 0; S.H = 0; S.stamp = null; },
+  update(dt, S) {
+    if (S.beat < 0) return; const cf = S.cf;
+    if (S.mode === 'live') cf.step(dt);
+    else if (S.mode === 'rew') { S.pi = Math.max(0, S.pi - dt * S.prate); if (S.pi === 0 && S.stamp == null) { S.stamp = S.t; AudioE.play('stamp'); } }
+    else if (S.mode === 'fwd') { S.pi += dt * S.prate; if (S.pi >= cf.hist.length - 1) { S.mode = 'live'; } }
+    if ((S.fc = (S.fc || 0) + 1) % 3 === 0) S.H = cf.entropy(S.mode === 'live' ? null : cf.hist[Math.round(S.pi)]);
+  },
+  onBeat(i, S) {
+    const cf = S.cf;
+    if (i === 3) { S.mode = 'rew'; S.pi = cf.hist.length - 1; S.prate = Math.max(1, S.pi) / 3.3; AudioE.play('rewind', { d: 3.2 }); }
+    if (i === 4) { S.mode = 'fwd'; S.prate = Math.max(1, cf.hist.length - 1) / 2.2; AudioE.play('ffwd', { d: 2 }); }
+  },
+  draw(c, S) {
+    const cf = S.cf, cx = 800, cy = 385, R = 262, rew = S.mode === 'rew';
+    const snap = S.mode === 'live' ? null : cf.hist[Math.max(0, Math.min(cf.hist.length - 1, Math.round(S.pi)))];
+    c.save(); if (rew) c.translate((Math.random() - .5) * 6, 0);
+    drawCup(c, cx, cy, R, () => cf.drawInto(c, cx, cy, R, snap));
+    c.restore();
+    const a0 = ap(S.s(0), 0, .8), tau = snap ? snap.tau : cf.tau;
+    const lab = rew ? '◀◀  ПЕРЕМОТКА' : S.mode === 'fwd' ? '▶▶  УСКОРЕННО' : '▶  ВОСПРОИЗВЕДЕНИЕ';
+    T(c, lab, 190, 170, { al: 'left', f: F.mono, size: 17, w: 600, ls: 2, c: rew ? COL.red : 'rgba(220,230,255,.7)', a: a0 * (rew ? (Math.sin(S.t * 10) > 0 ? 1 : .35) : .9) });
+    T(c, fmtTime(tau), 190, 208, { al: 'left', f: F.mono, size: 38, w: 600, c: rew ? COL.red : COL.gold, a: a0 });
+    T(c, 'время в чашке', 190, 244, { al: 'left', size: 15, w: 600, c: 'rgba(220,230,255,.5)', a: a0 });
+    vmeter(c, 1300, 200, 18, 380, S.H, { label: 'ЭНТРОПИЯ', a: ap(S.s(0), .5, 1), c0: COL.gold, c1: COL.cyan });
+    if (rew) {
+      c.save(); c.globalCompositeOperation = 'lighter';
+      for (let i = 0; i < 8; i++) { c.fillStyle = `rgba(255,255,255,${.03 + Math.random() * .05})`; c.fillRect(-200, Math.random() * H, W + 400, 1 + Math.random() * 6); }
+      c.fillStyle = 'rgba(255,40,90,.05)'; c.fillRect(-200, -100, W + 400, H + 200); c.restore();
+    }
+    if (S.stamp != null) {
+      const st = S.t - S.stamp, sa = ap(st, 0, .2) * (1 - ap(S.s(4), 0, .5));
+      if (sa > 0) {
+        const k = lerp(1.9, 1, eback(clamp(st / .38)));
+        c.save(); c.translate(cx, cy); c.rotate(-.12); c.scale(k, k); c.globalAlpha *= sa;
+        c.fillStyle = 'rgba(20,4,10,.55)'; rr(c, -320, -64, 640, 128, 16); c.fill(); c.strokeStyle = COL.red; c.lineWidth = 6; c.stroke();
+        T(c, 'ТАК НЕ БЫВАЕТ', 0, 4, { f: F.disp, w: 800, size: 42, ls: 2, c: COL.red, glow: 'rgba(255,60,90,.7)', blur: 24 });
+        c.restore();
+      }
+    }
+  }
+});
+
+/* ================= 2. GRID: what is entropy ================= */
+class Grid {
+  constructor() { this.occ = new Int8Array(100); this.P = []; }
+  setCells(cells, from) {
+    this.occ.fill(0); const old = this.P;
+    this.P = cells.map((c, i) => { this.occ[c] = 1; const o = old[i]; return { c, x: o ? o.x : from ? from(c, i).x : c % 10, y: o ? o.y : from ? from(c, i).y : (c / 10 | 0), d: from ? from(c, i).d || 0 : 0 }; });
+  }
+  retarget(cells) { const ps = [...this.P].sort((a, b) => a.c - b.c); cells = [...cells].sort((a, b) => a - b); this.occ.fill(0); ps.forEach((p, i) => { p.c = cells[i]; this.occ[p.c] = 1; }); }
+  hop(r) {
+    const p = this.P[(r() * this.P.length) | 0], cr = p.c / 10 | 0, cc = p.c % 10, cand = [];
+    for (let dr = -2; dr <= 2; dr++) for (let dc = -2; dc <= 2; dc++) { const nr = cr + dr, nc = cc + dc; if ((dr || dc) && nr >= 0 && nr < 10 && nc >= 0 && nc < 10 && !this.occ[nr * 10 + nc]) cand.push(nr * 10 + nc); }
+    if (!cand.length) return null; const k = cand[(r() * cand.length) | 0]; this.occ[p.c] = 0; this.occ[k] = 1; p.c = k; return p;
+  }
+  counts() { const q = [0, 0, 0, 0]; for (const p of this.P) { const r = p.c / 10 | 0, c = p.c % 10; q[(r >= 5 ? 2 : 0) + (c >= 5 ? 1 : 0)]++; } return q; }
+  lnW() { return this.counts().reduce((s, n) => s + lnC(25, n), 0); }
+  update(dt, t) { const k = 1 - Math.exp(-dt * 10); for (const p of this.P) { if (t < p.d) continue; p.x += (p.c % 10 - p.x) * k; p.y += ((p.c / 10 | 0) - p.y) * k; } }
+  draw(c, gx, gy, cs, o = {}) {
+    const a = o.a ?? 1; if (a <= .003) return; c.save(); c.globalAlpha *= a;
+    for (let r = 0; r < 10; r++) for (let q = 0; q < 10; q++) { rr(c, gx + q * cs + 2, gy + r * cs + 2, cs - 4, cs - 4, 7); c.fillStyle = 'rgba(140,160,255,0.05)'; c.fill(); }
+    c.strokeStyle = 'rgba(170,190,255,.22)'; c.lineWidth = 1.2; rr(c, gx - 6, gy - 6, cs * 10 + 12, cs * 10 + 12, 14); c.stroke();
+    if (o.quad > 0) {
+      c.save(); c.globalAlpha *= o.quad; c.strokeStyle = COL.cyan; c.lineWidth = 3; c.setLineDash([10, 8]); c.shadowColor = COL.cyan; c.shadowBlur = 10;
+      c.beginPath(); c.moveTo(gx + 5 * cs, gy - 16); c.lineTo(gx + 5 * cs, gy + 10 * cs + 16); c.moveTo(gx - 16, gy + 5 * cs); c.lineTo(gx + 10 * cs + 16, gy + 5 * cs); c.stroke(); c.restore();
+    }
+    if (o.bits > 0) for (let i = 0; i < 100; i++) T(c, this.occ[i] ? '1' : '0', gx + (i % 10 + .5) * cs, gy + ((i / 10 | 0) + .5) * cs + 1, { f: F.mono, size: cs * .36, w: 600, c: this.occ[i] ? '#2a1600' : 'rgba(160,180,255,.35)', a: o.bits });
+    c.globalCompositeOperation = 'lighter';
+    for (const p of this.P) { if (p.y < -.9) continue; glow(c, gx + (p.x + .5) * cs, gy + (p.y + .5) * cs, cs * .66, o.pc || COL.gold, .85); }
+    c.globalCompositeOperation = 'source-over';
+    for (const p of this.P) {
+      if (p.y < -.9) continue; c.beginPath(); c.arc(gx + (p.x + .5) * cs, gy + (p.y + .5) * cs, cs * .21, 0, TAU); c.fillStyle = o.core || '#fff1d2'; c.fill();
+    }
+    if (o.bits > 0) for (let i = 0; i < 100; i++) if (this.occ[i]) T(c, '1', gx + (i % 10 + .5) * cs, gy + ((i / 10 | 0) + .5) * cs + 1, { f: F.mono, size: cs * .3, w: 700, c: '#3a2000', a: o.bits });
+    c.restore();
+  }
+}
+function quadBadges(c, g, gx, gy, cs, a) {
+  if (a <= .003) return; const q = g.counts();
+  [[gx - 46, gy + 2.5 * cs], [gx + 10 * cs + 46, gy + 2.5 * cs], [gx - 46, gy + 7.5 * cs], [gx + 10 * cs + 46, gy + 7.5 * cs]].forEach(([x, y], i) => {
+    c.save(); c.globalAlpha *= a; c.beginPath(); c.arc(x, y, 26, 0, TAU); c.fillStyle = 'rgba(79,209,255,.1)'; c.fill(); c.strokeStyle = COL.cyan; c.lineWidth = 2; c.stroke(); c.restore();
+    T(c, String(q[i]), x, y + 1, { f: F.mono, w: 600, size: 22, c: COL.cyan, a });
+  });
+}
+function bellChart(c, x, y, w, h, k, a) {
+  if (a <= .003) return; let mx = 0; const vals = [];
+  for (let i = 0; i <= 50; i++) { const v = Math.exp(lnC(50, i) + lnC(50, 50 - i) - LNMAX); vals.push(v); mx = Math.max(mx, v); }
+  const bw = w / 51; c.save(); c.globalAlpha *= a;
+  for (let i = 0; i <= 50; i++) { const bh = Math.max(2, vals[i] / mx * h); c.fillStyle = i === k ? COL.gold : 'rgba(79,209,255,.5)'; if (i === k) { c.shadowColor = COL.gold; c.shadowBlur = 14; } c.fillRect(x + i * bw + 1, y + h - bh, bw - 2, bh); c.shadowBlur = 0; }
+  c.restore();
+  line(c, x, y + h + 2, x + w, y + h + 2, 'rgba(220,230,255,.4)', 1.5, a);
+  T(c, '0', x + bw / 2, y + h + 20, { size: 14, f: F.mono, c: 'rgba(220,230,255,.6)', a }); T(c, '25', x + w / 2, y + h + 20, { size: 14, f: F.mono, c: 'rgba(220,230,255,.6)', a }); T(c, '50', x + w - bw / 2, y + h + 20, { size: 14, f: F.mono, c: 'rgba(220,230,255,.6)', a });
+  T(c, 'сколько частиц в верхней половине', x + w / 2, y + h + 46, { size: 15, w: 600, c: 'rgba(220,230,255,.62)', a });
+  T(c, 'число способов', x, y - 14, { al: 'left', size: 15, w: 700, c: COL.cyan, a });
+  const kx = x + (k + .5) * bw; arrow(c, kx, y - 40, kx, y + h - Math.max(2, vals[k] / mx * h) - 8, { c: COL.gold, w: 2.5, head: 10, a });
+  T(c, 'мы', kx, y - 54, { size: 15, w: 800, c: COL.gold, a });
+}
+function macroPanel(c, g, x, y, a, o = {}) {
+  if (a <= .003) return; const q = g.counts(), l = q.reduce((s, n) => s + lnC(25, n), 0);
+  T(c, 'МАКРОСОСТОЯНИЕ · частиц в четвертях', x, y, { al: 'left', size: 15, w: 800, ls: 2, c: COL.cyan, a });
+  T(c, `(${q.join(', ')})`, x, y + 52, { al: 'left', size: 46, f: F.mono, w: 600, a, glow: 'rgba(79,209,255,.4)', blur: 16 });
+  const a2 = a * (o.wA ?? 1);
+  T(c, 'число способов   W = ' + fmtW(l), x, y + 118, { al: 'left', size: 25, w: 600, a: a2 });
+  T(c, 'энтропия   S = ln W = ' + comma(l), x, y + 160, { al: 'left', size: 25, w: 600, a: a2, c: o.sc || COL.white });
+  meter(c, x, y + 222, 520, l / LNMAX, { a: a2, label: 'S на шкале всех расстановок', value: comma(l) + ' / ' + comma(LNMAX) });
+}
+
+scene({
+  id: 'grid', chapter: 'Что такое энтропия', mood: 2,
+  beats: [
+    { t: 'С этого вопроса всё и началось: как выглядел бы мир с нулевой энтропией? Упростим его до предела: сетка 10 × 10 и 50 частиц.', v: 'С этого вопроса всё и началось: как выглядел бы мир с нулевой энтропией? Упростим его до предела: сетка десять на десять и пятьдесят частиц.', d: 4 },
+    { t: '*Микросостояние* — это точная расстановка: какая клетка занята, какая пуста. Единицы и нули.' },
+    { t: '*Макросостояние* — то, что видит «грубый» наблюдатель. Например, сколько частиц в каждой четверти сетки.' },
+    { t: 'Верх заполнен, низ пуст: (25, 25, 0, 0). Такую картину можно получить *единственным* способом. W = 1, энтропия S = 0.', v: 'Верх заполнен, низ пуст: двадцать пять, двадцать пять, ноль, ноль. Такую картину можно получить единственным способом. Способ один, энтропия равна нулю.', sfx: 'ping' },
+    { t: 'Теперь пусть частицы прыгают куда попало.', d: 6.5 },
+    { t: 'Способов получить «примерно поровну» — астрономически много. Мир скатывается туда просто потому, что туда ведёт *почти каждая дорожка*.', d: 6 },
+    { t: 'Это и есть энтропия по Больцману — логарифм числа способов: *S = k · ln W*. Никакой магии, только статистика.', v: 'Это и есть энтропия по Больцману: логарифм числа способов. Никакой магии, только статистика.', sfx: 'shimmer', d: 5 }
+  ],
+  init(S) { S.g = new Grid(); S.r = mulberry(5); S.acc = 0; },
+  onBeat(i, S) {
+    if (i === 0) { const t0 = S.t; S.g.setCells([...Array(50).keys()], (c, k) => ({ x: c % 10, y: (c / 10 | 0) - 12 - Math.random() * 2, d: t0 + .2 + (49 - k) * .035 })); AudioE.play('cascade', { n: 16, dt: .09 }); }
+  },
+  update(dt, S) {
+    S.g.update(dt, S.t);
+    if (S.beat >= 4) {
+      const rate = 22 + 30 * ap(S.s(4), 0, 4); S.acc += dt * rate;
+      while (S.acc >= 1) { S.acc--; const p = S.g.hop(S.r); if (p && Math.random() < .18) AudioE.play('tick', { f: 2400 + Math.random() * 2400, v: .03, pan: (p.c % 10) / 4.5 - 1 }); }
+    }
+  },
+  draw(c, S) {
+    const gx = 250, gy = 120, cs = 56, g = S.g;
+    const s = k => S.s(k);
+    g.draw(c, gx, gy, cs, { quad: ap(s(2), .2, .8), bits: ap(s(1), .3, .8) * (1 - ap(s(2), 0, .6)) });
+    quadBadges(c, g, gx, gy, cs, ap(s(2), .6, .8));
+    const px = 930;
+    // microstate bitstring
+    const ba = ap(s(1), .4, .8) * (1 - ap(s(2), 0, .5));
+    if (ba > 0) {
+      T(c, 'МИКРОСОСТОЯНИЕ · 100 клеток', px, 140, { al: 'left', size: 15, w: 800, ls: 2, c: COL.gold, a: ba });
+      for (let i = 0; i < 100; i++) T(c, g.occ[i] ? '1' : '0', px + (i % 25) * 21, 200 + (i / 25 | 0) * 38, { al: 'left', f: F.mono, size: 24, w: 600, c: g.occ[i] ? COL.gold : 'rgba(160,180,255,.4)', a: ba * ap(s(1), .4 + i * .008, .3) });
+      T(c, 'одна строка из 100 битов = один мир', px, 380, { al: 'left', size: 18, w: 600, c: 'rgba(220,230,255,.7)', a: ba * ap(s(1), 1.6, .8) });
+      T(c, 'всего таких миров: C(100, 50) ≈ 10²⁹', px, 414, { al: 'left', size: 18, w: 600, c: 'rgba(220,230,255,.55)', a: ba * ap(s(1), 2.2, .8) });
+    }
+    const ma = ap(s(2), .5, .8);
+    if (ma > 0) {
+      macroPanel(c, g, px, 140, ma, { wA: ap(s(3), .2, .8) });
+      if (s(3) >= 0 && s(4) < 0) {
+        const a3 = ap(s(3), 1.2, .8);
+        T(c, '= C(25,25) · C(25,25) · C(25,0) · C(25,0) = 1', px, 470, { al: 'left', size: 19, f: F.mono, w: 600, c: 'rgba(220,230,255,.72)', a: a3 });
+        pill(c, 'ровно один способ → энтропия ноль', px, 530, { al: 'left', c: COL.gold, size: 18, a: ap(s(3), 2, .8), glow: 1 });
+      }
+      const bA = ap(s(5), .3, .9) * (1 - ap(s(6), 0, .6));
+      if (bA > 0) { const q = g.counts(); bellChart(c, px, 500, 520, 150, q[0] + q[1], bA); }
+      const fa = ap(s(6), .3, 1);
+      if (fa > 0) {
+        c.globalCompositeOperation = 'lighter'; glow(c, px + 260, 560, 240, COL.gold, .22 * fa); c.globalCompositeOperation = 'source-over';
+        T(c, 'S = k · ln W', px + 260, 560, { f: F.disp, w: 800, size: 64, grad: [COL.gold, '#fff0d0'], a: fa, glow: 'rgba(255,181,71,.5)', blur: 30 });
+        T(c, 'Людвиг Больцман', px + 260, 630, { size: 18, w: 600, ls: 3, c: 'rgba(220,230,255,.65)', a: fa * ap(s(6), 1, .8) });
+      }
+    }
+  }
+});
+
+/* ================= 3. CHECKERBOARD TRAP ================= */
+const CHECKER = []; for (let r = 0; r < 10; r++) for (let q = 0; q < 10; q++) if ((r + q) % 2 === 0) CHECKER.push(r * 10 + q);
+function randomCells(seed) { const r = mulberry(seed), a = [...Array(100).keys()]; for (let i = 99; i > 0; i--) { const j = (r() * (i + 1)) | 0;[a[i], a[j]] = [a[j], a[i]]; } return a.slice(0, 50); }
+const occOf = cells => { const o = new Int8Array(100); cells.forEach(c => o[c] = 1); return o; };
+function mini(c, occ, x, y, sz, blk, a, o = {}) {
+  if (a <= .003) return; const cs = sz / 10; c.save(); c.globalAlpha *= a;
+  for (let br = 0; br < 10; br += blk) for (let bc = 0; bc < 10; bc += blk) {
+    let s = 0; for (let r = br; r < br + blk; r++) for (let q = bc; q < bc + blk; q++) s += occ[r * 10 + q];
+    const v = s / (blk * blk); let col;
+    if (blk === 1) col = v ? COL.gold : 'rgba(140,160,255,.07)'; else { const L = Math.round(40 + v * 150); col = `rgb(${L},${L},${L + 10})`; }
+    rr(c, x + bc * cs + 1.5, y + br * cs + 1.5, blk * cs - 3, blk * cs - 3, blk === 1 ? 4 : 12); c.fillStyle = col; c.fill();
+    if (blk === 1 && v && o.glow) { c.shadowColor = COL.gold; c.shadowBlur = 8; c.fill(); c.shadowBlur = 0; }
+    if (blk > 1) T(c, String(s), x + (bc + blk / 2) * cs, y + (br + blk / 2) * cs, { size: 26, f: F.mono, w: 600, c: 'rgba(8,10,22,.8)' });
+  }
+  c.restore();
+}
+scene({
+  id: 'checker', chapter: 'Ловушка для глаза', mood: 3,
+  beats: [
+    { t: 'Популярный ответ: шахматный порядок — тоже минимум энтропии. Он ведь идеально упорядочен?', sfx: 'cascade', d: 4 },
+    { t: 'Считаем по четвертям: (13, 12, 12, 13). Это около 7·10²⁶ расстановок: ln W ≈ 61,9 при теоретическом максимуме 66,8. Почти *максимум*!', v: 'Считаем по четвертям: тринадцать, двенадцать, двенадцать, тринадцать. Это около семи на десять в двадцать шестой степени расстановок. Почти максимум!', sfx: 'ping' },
+    { t: 'Для любого «грубого» наблюдателя шахматка *неотличима от тепловой смерти*. Упорядоченной её видит только глаз, различающий отдельные клетки.', d: 6 },
+    { t: 'Так энтропия зависит от нашего знания? Это полуправда. Макросостояния нельзя выбирать как попало.' },
+    { t: 'Их подсказывает сама динамика: *локальные, медленные, измеримые* величины — например, плотность в области.', d: 5 },
+    { t: 'Нарежьте классы искусственно — и энтропию можно заставить убывать. Второй закон говорит о *вполне определённом* способе огрубления.', d: 5 }
+  ],
+  init(S) {
+    S.g = new Grid(); S.g.setCells(randomCells(17)); S.rnd = occOf(randomCells(46));
+    const r = mulberry(8); S.gas = Array.from({ length: 320 }, () => ({ x: r() * 280, y: r() * 330 }));
+    // irregular classes
+    const cls = new Int8Array(100).fill(-1), seeds = [3, 27, 58, 71, 94, 40], rr2 = mulberry(4); seeds.forEach((s, k) => cls[s] = k);
+    for (let it = 0; it < 400; it++) { const i = (rr2() * 100) | 0; if (cls[i] < 0) continue; const nb = [i - 1, i + 1, i - 10, i + 10].filter(j => j >= 0 && j < 100 && Math.abs((j % 10) - (i % 10)) <= 1); const j = nb[(rr2() * nb.length) | 0]; if (cls[j] < 0) cls[j] = cls[i]; }
+    for (let i = 0; i < 100; i++) if (cls[i] < 0) cls[i] = i % 6;
+    S.cls = cls;
+  },
+  update(dt, S) {
+    if (S.s(0) > .4 && once(S, 'rt')) S.g.retarget(CHECKER);
+    S.g.update(dt, S.t);
+    if (S.beat >= 3) {
+      const r = Math.random, k = 700 * dt;
+      for (const p of S.gas) {
+        p.x += (r() - .5) * k; p.y += (r() - .5) * k;
+        if (p.x < 0) p.x = -p.x; if (p.x > 560) p.x = 1120 - p.x; if (p.y < 0) p.y = -p.y; if (p.y > 330) p.y = 660 - p.y;
+      }
+    }
+    if (S.s(5) > 1.2 && once(S, 'st')) AudioE.play('stamp');
+  },
+  draw(c, S) {
+    const s = k => S.s(k), g = S.g;
+    const mainA = 1 - ap(s(2), 0, .6);
+    if (mainA > 0) {
+      g.draw(c, 250, 150, 52, { a: mainA, quad: ap(s(1), 0, .8) });
+      quadBadges(c, g, 250, 150, 52, ap(s(1), .3, .8) * mainA);
+      const pa = ap(s(1), .5, .8) * mainA;
+      macroPanel(c, g, 910, 170, pa, { sc: COL.pink });
+      if (pa > 0) {
+        T(c, 'выглядит как порядок…', 910, 520, { al: 'left', size: 22, w: 600, c: 'rgba(220,230,255,.7)', a: pa * ap(s(1), 2, .8) });
+        T(c, '…а энтропия почти максимальная', 910, 556, { al: 'left', size: 22, w: 700, c: COL.pink, a: pa * ap(s(1), 3.2, .8) });
+      }
+      if (S.beat === 0) T(c, 'шахматный порядок = минимум энтропии?', 1180, 400, { size: 26, w: 700, c: 'rgba(230,235,255,.85)', a: ap(s(0), 1.2, .8) });
+    }
+    // four coarse-graining panels
+    const qa = ap(s(2), .4, .9) * (1 - ap(s(3), 0, .6));
+    if (qa > 0) {
+      const y = 250, sz = 250, xs = [110, 460, 890, 1240], occ = g.occ;
+      const titles = ['шахматка · по клеткам', 'шахматка · грубо', 'случайная смесь · грубо', 'случайная смесь · по клеткам'];
+      mini(c, occ, xs[0], y, sz, 1, qa, { glow: 1 }); mini(c, occ, xs[1], y, sz, 5, qa * ap(s(2), 1.2, .8));
+      mini(c, S.rnd, xs[2], y, sz, 5, qa * ap(s(2), 2.2, .8)); mini(c, S.rnd, xs[3], y, sz, 1, qa * ap(s(2), 1.6, .8), { glow: 1 });
+      titles.forEach((t, i) => T(c, t, xs[i] + sz / 2, y - 30, { size: 17, w: 700, c: i === 0 || i === 3 ? COL.gold : '#c9cfdc', a: qa * ap(s(2), [0, 1.2, 2.2, 1.6][i], .8) }));
+      arrow(c, xs[0] + sz + 14, y + sz / 2, xs[1] - 14, y + sz / 2, { c: 'rgba(220,230,255,.7)', w: 2.5, a: qa * ap(s(2), 1, .6) });
+      arrow(c, xs[3] - 14, y + sz / 2, xs[2] + sz + 14, y + sz / 2, { c: 'rgba(220,230,255,.7)', w: 2.5, a: qa * ap(s(2), 1.8, .6) });
+      T(c, '=', 800, y + sz / 2, { f: F.disp, size: 70, w: 700, c: '#fff', a: qa * ap(s(2), 2.8, .6), glow: 'rgba(255,255,255,.6)' });
+      pill(c, 'для грубого наблюдателя — одно и то же серое', 800, 600, { c: COL.cyan, size: 20, a: qa * ap(s(2), 3.4, .8), glow: 1 });
+    }
+    // who chooses macrostates
+    const wa = ap(s(3), .3, .8);
+    if (wa > 0) {
+      T(c, 'Кто выбирает макросостояния?', 800, 120, { f: F.disp, w: 700, size: 38, a: wa });
+      pill(c, 'наше знание? — полуправда', 470, 190, { c: COL.pink, size: 19, a: wa * ap(s(3), 1.2, .8) });
+      pill(c, 'сама динамика', 1130, 190, { c: COL.gold, size: 19, a: wa * ap(s(4), 0, .8), glow: 1 });
+      // honest coarse-graining: gas with density blocks
+      const ga = ap(s(4), .3, .9);
+      if (ga > 0) {
+        const x0 = 150, y0 = 260, w = 560, h = 330; panel(c, x0 - 10, y0 - 10, w + 20, h + 20, { a: ga });
+        const B = [4, 3], cnt = new Array(12).fill(0); for (const p of S.gas) cnt[Math.min(2, p.y / (h / 3) | 0) * 4 + Math.min(3, p.x / (w / 4) | 0)]++;
+        for (let j = 0; j < 12; j++) { const bx = x0 + (j % 4) * w / 4, by = y0 + (j / 4 | 0) * h / 3; c.save(); c.globalAlpha *= ga * clamp(cnt[j] / 60) * .5; c.fillStyle = COL.cyan; c.fillRect(bx + 2, by + 2, w / 4 - 4, h / 3 - 4); c.restore(); }
+        c.save(); c.globalAlpha *= ga; c.fillStyle = '#e8f4ff'; for (const p of S.gas) c.fillRect(x0 + p.x - 1.3, y0 + p.y - 1.3, 2.6, 2.6); c.restore();
+        for (let j = 0; j < 12; j++) T(c, String(cnt[j]), x0 + (j % 4 + .5) * w / 4, y0 + ((j / 4 | 0) + .5) * h / 3, { f: F.mono, size: 24, w: 600, c: '#fff', a: ga, glow: 'rgba(0,0,0,.9)', blur: 8 });
+        ['локальные', 'медленные', 'измеримые'].forEach((t, i) => pill(c, t, 1130, 290 + i * 62, { c: COL.gold, size: 20, a: ga * ap(s(4), .8 + i * .5, .7) * (1 - ap(s(5), 0, .6)) }));
+        T(c, 'например: плотность в области', 1130, 490, { size: 20, w: 600, c: 'rgba(220,230,255,.7)', a: ga * ap(s(4), 2.4, .8) * (1 - ap(s(5), 0, .6)) });
+        T(c, 'честное огрубление', x0 + w / 2, y0 + h + 40, { size: 18, w: 700, c: COL.gold, a: ga });
+      }
+      const fa = ap(s(5), .3, .9);
+      if (fa > 0) {
+        const x0 = 940, y0 = 260, cs = 33; c.save(); c.globalAlpha *= fa;
+        const pal = ['#ff4f9a', '#a07bff', '#4fd1ff', '#35f0c0', '#ffb547', '#ff7a3d'];
+        for (let i = 0; i < 100; i++) { rr(c, x0 + (i % 10) * cs + 1, y0 + (i / 10 | 0) * cs + 1, cs - 2, cs - 2, 4); c.fillStyle = hexA(pal[S.cls[i]], .55); c.fill(); }
+        c.restore();
+        T(c, '✂', x0 - 34, y0 + 20, { size: 34, c: COL.pink, a: fa });
+        T(c, 'нарезка как попало', x0 + 165, y0 + 370, { size: 18, w: 700, c: COL.pink, a: fa });
+        arrow(c, x0 + 400, y0 + 60, x0 + 400, y0 + 250, { c: COL.red, w: 5, head: 20, a: fa * ap(s(5), .8, .6), glow: 'rgba(255,77,94,.8)' });
+        T(c, 'S', x0 + 440, y0 + 150, { f: F.disp, size: 40, w: 800, c: COL.red, a: fa * ap(s(5), .8, .6) });
+        const sa = ap(s(5), 1.2, .3);
+        if (sa > 0) { c.save(); c.translate(x0 + 165, y0 + 165); c.rotate(-.1); const k = lerp(1.6, 1, eback(clamp((s(5) - 1.2) / .35))); c.scale(k, k); c.globalAlpha *= sa; c.fillStyle = 'rgba(20,4,10,.7)'; rr(c, -200, -38, 400, 76, 12); c.fill(); c.strokeStyle = COL.red; c.lineWidth = 4; c.stroke(); T(c, 'ВТОРОЙ ЗАКОН НЕ РАБОТАЕТ', 0, 3, { f: F.disp, size: 20, w: 800, c: COL.red, ls: 1 }); c.restore(); }
+      }
+    }
+  }
+});
+
+/* ================= 4. LAWS WITHOUT AN ARROW: Loschmidt & Past Hypothesis ================= */
+const BILL = (() => {
+  const r = 26, b = 22, v = 190, xa = -Math.sqrt(4 * r * r - b * b), tc = (xa + 270) / v;
+  const n = [(0 - xa) / (2 * r), b / (2 * r)], vn = v * n[0];
+  const vb = [vn * n[0], vn * n[1]], va = [v - vb[0], -vb[1]];
+  const pos = t => t < tc ? [[-270 + v * t, 0], [0, b]] : [[xa + va[0] * (t - tc), va[1] * (t - tc)], [vb[0] * (t - tc), b + vb[1] * (t - tc)]];
+  return { r, tc, Tm: 3.0, pos };
+})();
+const POINC = (() => { const r = mulberry(44), a = []; for (let i = 0; i < 420; i++) { let v = .94 - Math.abs(gauss(r)) * .04; if (r() < .03) v -= r() * .12; v -= .9 * Math.exp(-Math.pow((i - 330) / 5, 2)); a.push(v); } return a; })();
+function filmFrame(c, x, y, w, h, a, title, col) {
+  panel(c, x, y, w, h, { a, r: 12, stroke: hexA(col, .4) });
+  c.save(); c.globalAlpha *= a; c.fillStyle = 'rgba(0,0,0,.45)';
+  for (let i = 0; i < w / 34 - 1; i++) { rr(c, x + 14 + i * 34, y + 8, 18, 12, 3); c.fill(); rr(c, x + 14 + i * 34, y + h - 20, 18, 12, 3); c.fill(); }
+  c.restore(); T(c, title, x + 22, y + 44, { al: 'left', f: F.mono, size: 18, w: 600, ls: 2, c: col, a });
+}
+scene({
+  id: 'past', chapter: 'Законы без стрелы', mood: 5,
+  beats: [
+    { t: 'Теперь главная ловушка. Законы механики *симметричны во времени*: снимите столкновение шаров, прокрутите назад — физика не нарушена.', d: 7 },
+    { t: 'Если честно применить статистику от «сейчас» назад, она предскажет, что *в прошлом энтропия была выше*.', d: 5 },
+    { t: 'Это *возражение Лошмидта*. Рассуждение «раз энтропия растёт, значит, в начале был минимум» — перевёрнуто.' },
+    { t: 'Низкая энтропия прошлого — отдельное допущение, *«гипотеза прошлого»*: так её назвал философ Дэвид Альберт. И второй закон следует из неё, а не наоборот.', sfx: 'ping' },
+    { t: 'Так что логической неувязки нет: закон не запрещает начальный минимум — он его *предполагает*. Не хватает не непротиворечивости, а *объяснения*.', sfx: 'shimmer', d: 5 },
+    { t: 'И ещё: второй закон — статистический. «Верх заполнен» в нашей сетке когда-нибудь вернётся — это *возврат Пуанкаре*. Просто его вероятность — порядка 10⁻²⁹.', v: 'И ещё: второй закон — статистический. «Верх заполнен» в нашей сетке когда-нибудь вернётся — это возврат Пуанкаре. Просто его вероятность — порядка десяти в минус двадцать девятой степени.', d: 6 }
+  ],
+  init(S) { S.lastU = 0; },
+  update(dt, S) {
+    const s0 = S.s(0); if (s0 < 0 || S.beat > 0) return;
+    const u = (s0 % 3.8), cycle = Math.floor(s0 / 3.8);
+    if (S.cyc !== cycle) { S.cyc = cycle; S.hitF = S.hitB = false; }
+    if (!S.hitF && u >= BILL.tc) { S.hitF = true; AudioE.play('clack', { pan: -.5 }); }
+    if (!S.hitB && u >= BILL.Tm - BILL.tc) { S.hitB = true; AudioE.play('clack', { pan: .5, v: .22 }); }
+  },
+  draw(c, S) {
+    const s = k => S.s(k);
+    // billiards
+    const ba = ap(s(0), 0, .8) * (1 - ap(s(1), 0, .7));
+    if (ba > 0) {
+      const u = Math.min(BILL.Tm, (Math.max(0, s(0)) % 3.8));
+      [[140, 'ВПЕРЁД  ▶', COL.gold, t => t], [840, '◀  НАЗАД', COL.cyan, t => BILL.Tm - t]].forEach(([x, title, col, map], k) => {
+        filmFrame(c, x, 140, 620, 380, ba, title, col);
+        const cx = x + 330, cy = 330;
+        c.save(); c.beginPath(); c.rect(x + 4, 150, 612, 360); c.clip();
+        for (let j = 12; j >= 0; j--) { const tt = clamp(map(Math.max(0, u - j * .05)), 0, BILL.Tm); const [A, B] = BILL.pos(tt); const fa = ba * (1 - j / 13) * .25; if (j) { glow(c, cx + A[0], cy + A[1], 18, '#ffe2ad', fa); glow(c, cx + B[0], cy + B[1], 18, COL.cyan, fa); } }
+        const [A, B] = BILL.pos(clamp(map(u), 0, BILL.Tm));
+        [[A, '#fff3dc', '#ffb547'], [B, '#d9f6ff', '#4fd1ff']].forEach(([p, c1, c2]) => {
+          const g = c.createRadialGradient(cx + p[0] - 8, cy + p[1] - 9, 3, cx + p[0], cy + p[1], BILL.r);
+          g.addColorStop(0, c1); g.addColorStop(1, c2); c.save(); c.globalAlpha *= ba; c.beginPath(); c.arc(cx + p[0], cy + p[1], BILL.r, 0, TAU); c.fillStyle = g; c.shadowColor = c2; c.shadowBlur = 20; c.fill(); c.restore();
+        });
+        c.restore();
+        check(c, x + 40, 480, 14, COL.green, ba * ap(s(0), 2 + k * .6, .6));
+        T(c, 'законы соблюдены', x + 66, 482, { al: 'left', size: 18, w: 700, c: COL.green, a: ba * ap(s(0), 2 + k * .6, .6) });
+      });
+    }
+    // entropy graph
+    const ga = ap(s(1), 0, .8) * (1 - ap(s(5), 0, .7));
+    if (ga > 0) {
+      const x0 = 180, x1 = 1420, y0 = 660, yT = 270, nowX = 1060, uN = (nowX - x0) / (x1 - x0);
+      const Y = v => y0 - v * (y0 - yT), X = u => x0 + u * (x1 - x0);
+      axes(c, x0, yT, x1 - x0, y0 - yT, { a: ga, xl: 'время', yl: 'энтропия S' });
+      const Sa = u => .05 + .6 * u + .1 * u * u, Sn = Sa(uN);
+      const pa = ap(s(1), 0, 1.4), pts = [];
+      for (let i = 0; i <= 120; i++) { const u = i / 120 * lerp(uN * .02, 1, pa); pts.push([X(u), Y(Sa(u))]); }
+      poly(c, pts, COL.gold, 4, ga, { glow: 'rgba(255,181,71,.7)' });
+      line(c, nowX, yT - 10, nowX, y0, 'rgba(255,255,255,.5)', 2, ga, [6, 6]);
+      T(c, 'СЕЙЧАС', nowX, yT - 26, { f: F.disp, size: 15, w: 600, ls: 3, a: ga });
+      const qa = ap(s(1), 1.4, 2.2);
+      if (qa > 0) {
+        const left = [], right = []; const f = u => 1 - (1 - Sn) * Math.exp(-Math.abs(u - uN) / .12);
+        for (let i = 0; i <= 80; i++) { const d = i / 80 * qa; left.push([X(uN - d * uN), Y(f(uN - d * uN))]); right.push([X(Math.min(1, uN + d * (1 - uN))), Y(f(Math.min(1, uN + d * (1 - uN))))]); }
+        poly(c, left, COL.pink, 3.5, ga, { dash: [10, 8], glow: 'rgba(255,79,154,.7)' }); poly(c, right, COL.pink, 3.5, ga, { dash: [10, 8] });
+        T(c, 'предсказание статистики «от сейчас»', X(uN * .45), Y(.97) - 26, { size: 18, w: 700, c: COL.pink, a: ga * ap(s(1), 2.6, .8) });
+        T(c, 'реальная история', X(.5), Y(Sa(.5)) + 34, { size: 18, w: 700, c: COL.gold, a: ga * ap(s(1), 1, .8) });
+      }
+      const la = ap(s(2), .3, .8); if (la > 0) { pill(c, '⚠  возражение Лошмидта', X(.2), Y(.97) - 72, { c: COL.pink, size: 18, a: ga * la }); }
+      const ha = ap(s(3), .3, 1);
+      if (ha > 0) {
+        c.globalCompositeOperation = 'lighter'; glow(c, x0 + 4, Y(Sa(0)), 60 + 8 * Math.sin(S.t * 4), COL.gold, ga * ha); glow(c, x0 + 4, Y(Sa(0)), 20, COL.white, ga * ha); c.globalCompositeOperation = 'source-over';
+        pill(c, 'ГИПОТЕЗА ПРОШЛОГО', x0 + 30, Y(Sa(0)) - 60, { al: 'left', c: COL.gold, size: 18, a: ga * ha, glow: 1 });
+        T(c, 'в начале S была очень мала — это допущение', x0 + 30, Y(Sa(0)) - 20, { al: 'left', size: 17, w: 600, c: 'rgba(255,225,180,.85)', a: ga * ap(s(3), 1, .8) });
+      }
+      const lg = ap(s(4), .2, .8);
+      if (lg > 0) {
+        const bx = 470, by = 104; panel(c, bx - 30, by - 44, 720, 110, { a: ga * lg });
+        T(c, 'второй закон  ⟹  в начале был минимум', bx, by - 12, { al: 'left', size: 22, w: 700, c: 'rgba(230,235,255,.7)', a: ga * lg });
+        strike(c, bx - 6, by - 12, bx + 470, COL.red, (s(4) - .8) / .6, ga * lg);
+        T(c, 'гипотеза прошлого  ⟹  второй закон', bx, by + 30, { al: 'left', size: 22, w: 800, c: COL.gold, a: ga * ap(s(4), 1.4, .8) });
+        check(c, bx + 620, by + 30, 14, COL.green, ga * ap(s(4), 1.8, .6));
+      }
+    }
+    // Poincaré recurrence
+    const pa2 = ap(s(5), .5, .9);
+    if (pa2 > 0) {
+      const x0 = 180, x1 = 1420, y0 = 640, yT = 250, n = POINC.length, prog = clamp((s(5) - .5) / 4.5);
+      axes(c, x0, yT, x1 - x0, y0 - yT, { a: pa2, xl: 'время (шаги)', yl: 'энтропия S' });
+      const pts = []; for (let i = 0; i < n * prog; i++) pts.push([x0 + i / n * (x1 - x0), y0 - POINC[i] * (y0 - yT)]);
+      poly(c, pts, COL.cyan, 2, pa2, { glow: 'rgba(79,209,255,.6)' });
+      T(c, 'почти всегда — у максимума, с мелкими флуктуациями', x0 + 20, yT - 52, { al: 'left', size: 18, w: 600, c: 'rgba(220,230,255,.75)', a: pa2 * ap(s(5), 1, .8) });
+      const da = pa2 * ap(s(5), 4.2, .8), dx = x0 + 330 / n * (x1 - x0);
+      if (da > 0) {
+        mini(c, occOf([...Array(50).keys()]), dx + 40, y0 - 170, 110, 1, da, { glow: 1 });
+        pill(c, 'возврат Пуанкаре · вероятность ~ 10⁻²⁹', dx - 30, y0 + 44, { c: COL.gold, size: 18, a: da, glow: 1 });
+      }
+    }
+  }
+});
+</script>
+<script>
+'use strict';
+/* =====================================================================
+   SCENES — part 2
+   ===================================================================== */
+
+/* ================= 5. GRAVITY ================= */
+class NBody {
+  constructor(n, w, h, seed) {
+    const r = mulberry(seed); this.n = n; this.w = w; this.h = h;
+    this.x = new Float32Array(n); this.y = new Float32Array(n); this.vx = new Float32Array(n); this.vy = new Float32Array(n);
+    this.ax = new Float32Array(n); this.ay = new Float32Array(n); this.al = new Uint8Array(n).fill(1);
+    const cols = 20, rows = Math.ceil(n / cols); let k = 0;
+    for (let j = 0; j < rows; j++) for (let i = 0; i < cols && k < n; i++, k++) { this.x[k] = (i + .5) / cols * w + (r() - .5) * 12; this.y[k] = (j + .5) / rows * h + (r() - .5) * 12; this.vx[k] = (r() - .5) * 6; this.vy[k] = (r() - .5) * 6; }
+    this.bh = null; this.fl = []; this.run = false;
+  }
+  bhR() { return this.bh ? 4 + 1.1 * Math.sqrt(this.bh.m) : 0; }
+  bhDraw() { return this.bh ? 8 + 1.9 * Math.sqrt(this.bh.m) : 0; }
+  step(dt) {
+    for (const f of this.fl) f.t += dt; this.fl = this.fl.filter(f => f.t < .5);
+    if (!this.run) return; const sub = Math.max(1, Math.ceil(dt / .008)), h = dt / sub; for (let s = 0; s < sub; s++) this.sub(h);
+  }
+  sub(h) {
+    const n = this.n, x = this.x, y = this.y, vx = this.vx, vy = this.vy, al = this.al, ax = this.ax, ay = this.ay, G = 5200, e2 = 70;
+    ax.fill(0); ay.fill(0);
+    for (let i = 0; i < n; i++) {
+      if (!al[i]) continue; const xi = x[i], yi = y[i]; let axi = 0, ayi = 0;
+      for (let j = i + 1; j < n; j++) { if (!al[j]) continue; const dx = x[j] - xi, dy = y[j] - yi, r2 = dx * dx + dy * dy; if (r2 > 16900) continue; const d2 = r2 + e2, w = 1 - r2 / 16900, inv = G * w * w / (d2 * Math.sqrt(d2)); axi += dx * inv; ayi += dy * inv; ax[j] -= dx * inv; ay[j] -= dy * inv; }
+      ax[i] += axi; ay[i] += ayi;
+    }
+    const b = this.bh;
+    if (b) for (let i = 0; i < n; i++) { if (!al[i]) continue; const dx = b.x - x[i], dy = b.y - y[i], d2 = dx * dx + dy * dy + e2, inv = G * .45 * b.m / (d2 * Math.sqrt(d2)); ax[i] += dx * inv; ay[i] += dy * inv; }
+    for (let i = 0; i < n; i++) { if (!al[i]) continue; const dmp = b ? .99985 : .9993; vx[i] = (vx[i] + ax[i] * h) * dmp; vy[i] = (vy[i] + ay[i] * h) * dmp; x[i] += vx[i] * h; y[i] += vy[i] * h; }
+    if (b) {
+      const R = this.bhR();
+      for (let i = 0; i < n; i++) { if (!al[i]) continue; const dx = x[i] - b.x, dy = y[i] - b.y; if (dx * dx + dy * dy < R * R) { al[i] = 0; b.px += vx[i]; b.py += vy[i]; b.m += 1; this.fl.push({ x: x[i], y: y[i], t: 0 }); } }
+    }
+  }
+  makeBH() {
+    let best = -1, bi = 0; const n = this.n;
+    for (let i = 0; i < n; i++) { if (!this.al[i] || Math.abs(this.x[i] - this.w / 2) > 110 || Math.abs(this.y[i] - this.h / 2) > 80) continue; let c = 0; for (let j = 0; j < n; j++) if (this.al[j] && (this.x[j] - this.x[i]) ** 2 + (this.y[j] - this.y[i]) ** 2 < 900) c++; if (c > best) { best = c; bi = i; } }
+    if (best < 0) { bi = 0; } this.bh = { x: best < 0 ? this.w / 2 : this.x[bi], y: best < 0 ? this.h / 2 : this.y[bi], m: 6, px: 0, py: 0 }; if (best >= 0) this.al[bi] = 0;
+  }
+  clump() { // normalized clumpiness from occupancy histogram
+    const B = [8, 6], cnt = new Float32Array(48); let m = 0;
+    for (let i = 0; i < this.n; i++) { if (!this.al[i]) continue; const bx = clamp(this.x[i] / this.w * 8 | 0, 0, 7), by = clamp(this.y[i] / this.h * 6 | 0, 0, 5); cnt[by * 8 + bx]++; m++; }
+    if (this.bh) { const bx = clamp(this.bh.x / this.w * 8 | 0, 0, 7), by = clamp(this.bh.y / this.h * 6 | 0, 0, 5); cnt[by * 8 + bx] += this.bh.m; m += this.bh.m; }
+    let hh = 0; for (const c of cnt) if (c > 0) { const p = c / m; hh -= p * Math.log(p); } return 1 - hh / Math.log(48);
+  }
+}
+function histH(pts, w, h) { const cnt = new Float32Array(48); for (const p of pts) cnt[clamp(p.y / h * 6 | 0, 0, 5) * 8 + clamp(p.x / w * 8 | 0, 0, 7)]++; let hh = 0; for (const c of cnt) if (c > 0) { const q = c / pts.length; hh -= q * Math.log(q); } return hh / Math.log(48); }
+let CMB = null;
+function makeCMB() {
+  if (CMB) return CMB; const w = 500, h = 120, cv = document.createElement('canvas'); cv.width = w; cv.height = h; const g = cv.getContext('2d'), d = g.createImageData(w, h), f = new Float32Array(w * h), r = mulberry(77);
+  for (let k = 0; k < 260; k++) { const cx = r() * w, cy = r() * h, rad = 3 + r() * 11, s = r() < .5 ? -1 : 1; for (let y = Math.max(0, cy - rad * 3 | 0); y < Math.min(h, cy + rad * 3); y++) for (let x = Math.max(0, cx - rad * 3 | 0); x < Math.min(w, cx + rad * 3); x++) f[y * w + x] += s * Math.exp(-((x - cx) ** 2 + (y - cy) ** 2) / (2 * rad * rad)); }
+  let mx = 0; for (const v of f) mx = Math.max(mx, Math.abs(v));
+  for (let i = 0; i < f.length; i++) { const v = f[i] / mx, a = [30, 70, 170], b = [230, 235, 255], c2 = [235, 110, 40]; const col = v < 0 ? a.map((q, j) => b[j] + (q - b[j]) * -v) : b.map((q, j) => q + (c2[j] - q) * v); d.data[i * 4] = col[0]; d.data[i * 4 + 1] = col[1]; d.data[i * 4 + 2] = col[2]; d.data[i * 4 + 3] = 255; }
+  g.putImageData(d, 0, 0); return (CMB = cv);
+}
+function planck(c, x, y, w, h, a) {
+  if (a <= .003) return; panel(c, x, y, w, h, { a, r: 12, f0: 'rgba(5,7,20,.8)', f1: 'rgba(5,7,20,.8)' });
+  const pts = []; for (let i = 1; i <= 60; i++) { const q = i / 60 * 11, v = q * q * q / (Math.exp(q) - 1) / 1.42; pts.push([x + 14 + q / 11 * (w - 28), y + h - 16 - v * (h - 44)]); }
+  poly(c, pts, COL.gold, 2.5, a, { glow: 'rgba(255,181,71,.8)' });
+  T(c, 'спектр реликтового излучения', x + 14, y + 16, { al: 'left', size: 12.5, w: 700, c: 'rgba(230,235,255,.8)', a });
+  T(c, '≈ идеальное чёрное тело', x + w - 12, y + h - 30, { al: 'right', size: 12.5, w: 700, c: COL.gold, a });
+}
+scene({
+  id: 'gravity', chapter: 'Гравитация всё переворачивает', mood: 4,
+  beats: [
+    { t: 'Часто говорят: ранняя Вселенная была упорядоченной, потому что энергия была распределена *равномерно*. На самом деле — ровно наоборот.' },
+    { t: 'Для газа в ящике равномерность — это равновесие, *максимум* энтропии. Реликтовое излучение — почти идеальное чёрное тело.', d: 5.5 },
+    { t: 'Но гравитация всё переворачивает. Для самогравитирующего облака однородность *крайне маловероятна*.', d: 4 },
+    { t: 'Слипание в звёзды и галактики *повышает* энтропию. А максимум дают *чёрные дыры*.', d: 7.5 },
+    { t: 'Вся низкая энтропия начала сидела в гравитации — в гладкости ранней Вселенной. У Пенроуза это *гипотеза вейлевской кривизны*.', sfx: 'shimmer' },
+    { t: 'Одна и та же однородность — максимум энтропии для газа и *минимум* для гравитации. Запомним: однородность может быть «единицей».', d: 5 }
+  ],
+  init(S) {
+    const r = mulberry(12); S.gas = []; for (let i = 0; i < 220; i++) S.gas.push({ x: 10 + r() * 600, y: 10 + r() * 410, vx: 0, vy: 0 });
+    S.nb = new NBody(220, 620, 430, 31); makeCMB(); S.hL = histH(S.gas, 620, 430); S.cR = S.nb.clump();
+  },
+  onBeat(i, S) {
+    if (i === 1) { const r = mulberry(13); for (const p of S.gas) { const a = r() * TAU, d = Math.sqrt(r()) * 70; p.x = 110 + Math.cos(a) * d; p.y = 215 + Math.sin(a) * d; const sp = 120 + r() * 120, b = r() * TAU; p.vx = Math.cos(b) * sp; p.vy = Math.sin(b) * sp; } AudioE.play('pop'); }
+    if (i === 2) { S.nb.run = true; AudioE.play('riser', { d: 3, v: .12 }); }
+  },
+  update(dt, S) {
+    for (const p of S.gas) { p.x += p.vx * dt; p.y += p.vy * dt; if (p.x < 6) { p.x = 6; p.vx = Math.abs(p.vx); } if (p.x > 614) { p.x = 614; p.vx = -Math.abs(p.vx); } if (p.y < 6) { p.y = 6; p.vy = Math.abs(p.vy); } if (p.y > 424) { p.y = 424; p.vy = -Math.abs(p.vy); } }
+    S.nb.step(dt);
+    if (S.s(3) > 2.4 && once(S, 'bh')) { S.nb.makeBH(); AudioE.play('boom', { v: .45 }); }
+    if ((S.fc = (S.fc || 0) + 1) % 4 === 0) { S.hL = lerp(S.hL, histH(S.gas, 620, 430), .5); S.cR = lerp(S.cR, S.nb.clump(), .5); }
+  },
+  draw(c, S) {
+    const s = k => S.s(k), a0 = ap(s(0), 0, .8);
+    const L = [120, 150], R = [860, 150], w = 620, h = 430;
+    panel(c, L[0], L[1], w, h, { a: a0, stroke: 'rgba(79,209,255,.3)' }); panel(c, R[0], R[1], w, h, { a: a0, stroke: 'rgba(255,181,71,.3)' });
+    T(c, 'ГАЗ В ЯЩИКЕ', L[0] + w / 2, 118, { f: F.disp, size: 20, w: 700, ls: 3, c: COL.cyan, a: a0 });
+    T(c, 'ОБЛАКО С ГРАВИТАЦИЕЙ', R[0] + w / 2, 118, { f: F.disp, size: 20, w: 700, ls: 3, c: COL.gold, a: a0 });
+    // gas
+    c.save(); c.beginPath(); c.rect(L[0], L[1], w, h); c.clip(); c.globalCompositeOperation = 'lighter';
+    for (const p of S.gas) glow(c, L[0] + p.x, L[1] + p.y, 9, COL.cyan, .9 * a0);
+    c.restore();
+    // cloud
+    const nb = S.nb;
+    c.save(); c.beginPath(); c.rect(R[0], R[1], w, h); c.clip(); c.globalCompositeOperation = 'lighter';
+    for (let i = 0; i < nb.n; i++) if (nb.al[i]) glow(c, R[0] + nb.x[i], R[1] + nb.y[i], 10, COL.gold, .9 * a0);
+    for (const f of nb.fl) glow(c, R[0] + f.x, R[1] + f.y, 16 + f.t * 30, COL.white, (1 - f.t / .5) * .8);
+    if (nb.bh) {
+      const b = nb.bh, rb = nb.bhDraw(), bx = R[0] + b.x, by = R[1] + b.y;
+      glow(c, bx, by, rb * 4.5, COL.amber, .55); glow(c, bx, by, rb * 2.2, COL.gold, .6);
+      c.globalCompositeOperation = 'source-over'; c.beginPath(); c.arc(bx, by, rb, 0, TAU); c.fillStyle = '#000'; c.fill();
+      c.lineWidth = 2.5; c.strokeStyle = 'rgba(255,220,160,.95)'; c.beginPath(); c.arc(bx, by, rb * 1.08, 0, TAU); c.stroke();
+      c.lineWidth = 3; c.strokeStyle = 'rgba(255,150,60,.8)'; c.beginPath(); c.ellipse(bx, by, rb * 2, rb * .55, -.3, S.t * 2, S.t * 2 + 4.2); c.stroke();
+    }
+    c.restore();
+    // meters
+    vmeter(c, L[0] + w - 34, L[1] + 70, 12, 300, S.hL, { a: a0, c0: COL.cyan, c1: COL.teal });
+    T(c, 'S', L[0] + w - 28, L[1] + 40, { f: F.disp, size: 18, w: 800, c: COL.cyan, a: a0 });
+    const sg = clamp(.06 + S.cR * 1.25 + (nb.bh ? .5 * nb.bh.m / nb.n + .15 : 0));
+    vmeter(c, R[0] + w - 34, R[1] + 70, 12, 300, sg, { a: a0 });
+    T(c, 'S', R[0] + w - 28, R[1] + 40, { f: F.disp, size: 18, w: 800, c: COL.gold, a: a0 });
+    // annotations
+    pill(c, 'равномерно', L[0] + w / 2 - 20, L[1] + h / 2, { c: COL.white, size: 20, a: ap(s(0), 1.5, .8) * (1 - ap(s(1), 0, .4)) });
+    pill(c, 'равномерно', R[0] + w / 2 - 20, R[1] + h / 2, { c: COL.white, size: 20, a: ap(s(0), 1.5, .8) * (1 - ap(s(2), 0, .4)) });
+    T(c, 'значит, упорядоченно?', 800, 620, { size: 24, w: 700, c: 'rgba(230,235,255,.8)', a: ap(s(0), 2.5, .8) * (1 - ap(s(1), 0, .5)) });
+    pill(c, 'равновесие = максимум S', L[0] + w / 2 - 20, L[1] + h - 40, { c: COL.cyan, size: 19, a: ap(s(1), 3, .8), glow: 1 });
+    planck(c, L[0] + 18, L[1] + 18, 230, 120, ap(s(1), 1.6, .8) * (1 - ap(s(3), 0, .6)));
+    pill(c, 'однородно — а энтропия мала!', R[0] + w / 2 - 20, R[1] + h - 40, { c: COL.gold, size: 19, a: ap(s(2), .8, .8) * (1 - ap(s(3), 0, .5)), glow: 1 });
+    pill(c, 'слипание: S растёт', R[0] + w / 2 - 20, R[1] + h - 40, { c: COL.gold, size: 19, a: ap(s(3), .4, .8) * (1 - ap(s(3), 2.3, .4)), glow: 1 });
+    pill(c, 'чёрная дыра — максимум S', R[0] + w / 2 - 20, R[1] + h - 40, { c: COL.amber, size: 19, a: ap(s(3), 2.8, .8), glow: 1 });
+    const ca = ap(s(4), .2, 1);
+    if (ca > 0) {
+      c.save(); c.globalAlpha *= ca; c.beginPath(); c.ellipse(800, 660, 250, 56, 0, 0, TAU); c.clip(); c.drawImage(CMB, 550, 604, 500, 112); c.restore();
+      c.save(); c.globalAlpha *= ca; c.beginPath(); c.ellipse(800, 660, 250, 56, 0, 0, TAU); c.strokeStyle = 'rgba(255,255,255,.5)'; c.lineWidth = 1.5; c.stroke(); c.restore();
+      T(c, 'ранняя Вселенная', 530, 640, { al: 'right', size: 19, w: 800, c: COL.white, a: ca });
+      T(c, 'гладкая: неоднородности ~ 10⁻⁵', 530, 670, { al: 'right', size: 16, w: 600, c: 'rgba(220,230,255,.7)', a: ca });
+      T(c, 'гипотеза', 1070, 640, { al: 'left', size: 19, w: 800, c: COL.gold, a: ca * ap(s(4), 2, .8) });
+      T(c, 'вейлевской кривизны (Пенроуз)', 1070, 670, { al: 'left', size: 16, w: 600, c: 'rgba(255,225,180,.8)', a: ca * ap(s(4), 2, .8) });
+    }
+    const fa = ap(s(5), .3, .8);
+    pill(c, 'однородность → S макс', L[0] + w / 2 - 20, L[1] + 50, { c: COL.cyan, size: 21, a: fa, glow: 1 });
+    pill(c, 'однородность → S мин', R[0] + w / 2 - 20, R[1] + 50, { c: COL.gold, size: 21, a: fa * ap(s(5), .8, .8), glow: 1 });
+  }
+});
+
+/* ================= 6. THE IDEA: ONE AND ZERO ================= */
+let FOG = null;
+function fogFrames() {
+  if (FOG) return FOG; FOG = [];
+  for (let k = 0; k < 6; k++) {
+    const cv = document.createElement('canvas'); cv.width = cv.height = 420; const g = cv.getContext('2d'), d = g.createImageData(420, 420);
+    for (let y = 0; y < 420; y++) for (let x = 0; x < 420; x++) { const r = Math.hypot(x - 210, y - 210); if (r > 204) continue; const i = (y * 420 + x) * 4, v = Math.random() < .5 ? 232 : 26; d.data[i] = v; d.data[i + 1] = v; d.data[i + 2] = v + 12; d.data[i + 3] = 255 * clamp((204 - r) / 5); }
+    g.putImageData(d, 0, 0); FOG.push(cv);
+  }
+  return FOG;
+}
+function smoothDisk(c, x, y, r, a, tint = '#8e94a4') {
+  if (a <= .003) return; c.save(); c.globalAlpha *= a;
+  const g = c.createRadialGradient(x - r * .3, y - r * .35, r * .1, x, y, r); g.addColorStop(0, '#c7ccd8'); g.addColorStop(.6, tint); g.addColorStop(1, '#5d6272');
+  c.beginPath(); c.arc(x, y, r, 0, TAU); c.fillStyle = g; c.shadowColor = 'rgba(200,210,255,.35)'; c.shadowBlur = 40; c.fill(); c.restore();
+}
+function drawHelix(c, cx, yb, yt, R, turns, rot, pk, a, t) {
+  if (a <= .003) return; const N = 420, tmax = turns * TAU, pts = [];
+  for (let i = 0; i <= N; i++) { const th = i / N * tmax, ang = th + rot, yy = lerp((yb + yt) / 2, lerp(yb, yt, th / tmax), pk); pts.push([cx + Math.cos(ang) * R, yy + Math.sin(ang) * R * .3, Math.sin(ang), th / tmax]); }
+  c.save(); c.lineCap = 'round';
+  for (const front of [false, true]) for (let i = 0; i < N; i++) {
+    const p = pts[i], q = pts[i + 1]; if (((p[2] + q[2]) / 2 > 0) !== front) continue;
+    c.globalAlpha = a * (front ? 1 : .3); c.strokeStyle = mixC(COL.gold, COL.cyan, p[3]); c.lineWidth = front ? 4.5 : 2;
+    c.beginPath(); c.moveTo(p[0], p[1]); c.lineTo(q[0], q[1]); c.stroke();
+  }
+  c.globalAlpha = 1; c.restore();
+  c.save(); c.globalCompositeOperation = 'lighter';
+  for (let k = 0; k <= turns * 2; k++) { const th = k * Math.PI, ang = th + rot, yy = lerp((yb + yt) / 2, lerp(yb, yt, th / tmax), pk), x = cx + Math.cos(ang) * R, y = yy + Math.sin(ang) * R * .3, fr = Math.sin(ang) > 0 ? 1 : .35; glow(c, x, y, 26, k % 2 ? '#c9cfdc' : COL.gold, a * fr * .9); }
+  for (let j = 0; j < 36; j++) { const u = (j / 36 + t * .035) % 1, th = u * tmax, ang = th + rot, yy = lerp((yb + yt) / 2, lerp(yb, yt, u), pk); glow(c, cx + Math.cos(ang) * R, yy + Math.sin(ang) * R * .3, 12, COL.white, a * (Math.sin(ang) > 0 ? .9 : .25)); }
+  c.restore();
+}
+scene({
+  id: 'idea', chapter: 'Единица и ноль', mood: 0,
+  beats: [
+    { t: 'А теперь — сама идея, с которой начался этот разговор.', d: 3 },
+    { t: 'Состояние максимальной энтропии, идеальный хаос, абсолютно однородно. Из всей сложности получается что-то одно. *Единица*.', sfx: 'shimmer', d: 6.5 },
+    { t: 'Добавим рядом пустоту — условный *ноль*. Получится простейший мир с идеальным разделением: здесь один, там ноль.', sfx: 'pop', d: 5 },
+    { t: 'Это же *минимальная энтропия*! И смешение может запуститься заново.', d: 6 },
+    { t: 'Не круг, а *спираль*. Может быть, так и снимается загадка: откуда взялся минимум, если энтропия не умеет убывать?', sfx: 'shimmer', d: 6 },
+    { t: 'Разберём, что в этой идее *точно*, а что нужно *заострить*.', d: 3.5 }
+  ],
+  init(S) { fogFrames(); const r = mulberry(19); S.mix = Array.from({ length: 700 }, () => { const a = r() * TAU, d = Math.sqrt(r()) * 195, b = r() * TAU, sp = 90 + r() * 140; return { x: 560 + Math.cos(a) * d, y: 380 + Math.sin(a) * d, vx: Math.cos(b) * sp, vy: Math.sin(b) * sp }; }); },
+  update(dt, S) {
+    if (S.s(3) > 1) for (const p of S.mix) {
+      p.x += p.vx * dt; p.y += p.vy * dt;
+      const cx = clamp(p.x, 560, 1040), dx = p.x - cx, dy = p.y - 380, d = Math.hypot(dx, dy);
+      if (d > 198) { const nx = dx / d, ny = dy / d, vn = p.vx * nx + p.vy * ny; p.x = cx + nx * 197; p.y = 380 + ny * 197; if (vn > 0) { p.vx -= 2 * vn * nx; p.vy -= 2 * vn * ny; } }
+    }
+    if (S.s(3) > .6 && once(S, 'rs')) AudioE.play('riser', { d: 3, v: .14 });
+  },
+  draw(c, S) {
+    const s = k => S.s(k), t = S.t, fog = FOG;
+    const qa = ap(s(0), 0, 1) * (1 - ap(s(1), 0, .6));
+    if (qa > 0) {
+      T(c, '«', 520, 330, { f: F.disp, size: 140, w: 800, c: COL.gold, a: qa * .5 });
+      T(c, 'А что если полный хаос —', 800, 360, { f: F.disp, size: 36, w: 600, a: qa });
+      T(c, 'это почти то же самое, что идеальный порядок?', 800, 420, { f: F.disp, size: 36, w: 600, a: qa * ap(s(0), .8, .8), grad: ['#fff', COL.gold] });
+    }
+    const on = ap(s(1), 0, .8) * (1 - ap(s(4), 0, .7));
+    if (on > 0) {
+      const shift = eio(ap(s(2), 0, 1.3)), cx = lerp(800, 560, shift), cy = 380, q = ap(s(1), 2.4, 2.5), mixA = ap(s(3), .8, 1.2);
+      c.save(); c.globalAlpha *= on * (1 - q) * (1 - mixA); c.drawImage(fog[(S.t * 20 | 0) % 6], cx - 210, cy - 210); c.restore();
+      smoothDisk(c, cx, cy, 200, on * q * (1 - mixA));
+      T(c, '1', cx, cy + 8, { f: F.disp, size: 230, w: 900, c: COL.gold, a: on * q * (1 - mixA), glow: 'rgba(255,181,71,.8)', blur: 40 });
+      T(c, 'МАКСИМАЛЬНАЯ ЭНТРОПИЯ', cx, 128, { f: F.disp, size: 18, w: 600, ls: 4, c: COL.cyan, a: on * ap(s(1), .4, .8) * (1 - ap(s(2), 0, .5)) });
+      T(c, 'для грубого глаза — одно целое', cx, 640, { size: 21, w: 600, c: 'rgba(220,230,255,.75)', a: on * ap(s(1), 3.5, .8) * (1 - ap(s(2), 0, .5)) });
+      const za = on * ap(s(2), .9, 1) * (1 - mixA);
+      if (za > 0) {
+        c.save(); c.globalAlpha *= za; c.setLineDash([12, 10]); c.lineDashOffset = -t * 20; c.strokeStyle = COL.cyan; c.lineWidth = 3; c.beginPath(); c.arc(1040, cy, 200, 0, TAU); c.stroke(); c.restore();
+        T(c, '0', 1040, cy + 8, { f: F.disp, size: 230, w: 900, c: 'rgba(0,0,0,0)', stroke: COL.cyan, sw: 3, a: za });
+        line(c, 800, 150, 800, 610, COL.white, 2, za * .6, [4, 8]);
+        T(c, 'всё', 560, 640, { size: 22, w: 700, c: COL.gold, a: za }); T(c, 'пустота', 1040, 640, { size: 22, w: 700, c: COL.cyan, a: za });
+        T(c, 'ИДЕАЛЬНОЕ РАЗДЕЛЕНИЕ', 800, 118, { f: F.disp, size: 18, w: 600, ls: 4, c: COL.white, a: za * (1 - ap(s(3), 0, .5)) });
+      }
+      pill(c, 'минимальная энтропия?!', 800, 118, { c: COL.gold, size: 21, a: on * ap(s(3), 0, .7), glow: 1 });
+      if (mixA > 0) {
+        c.save(); c.globalCompositeOperation = 'lighter'; for (const p of S.mix) glow(c, p.x, p.y, 16, '#b8bfd0', .32 * mixA * on); c.restore();
+        T(c, 'снова перемешивается…', 800, 650, { size: 22, w: 600, c: 'rgba(220,230,255,.75)', a: on * ap(s(3), 3, .8) });
+      }
+    }
+    const ha = ap(s(4), .3, 1);
+    if (ha > 0) {
+      const pk = eio(ap(s(4), 1.6, 2.4));
+      drawHelix(c, 800, 640, 150, 250, 3.5, t * .5, pk, ha, t);
+      T(c, 'круг: всё возвращается', 800, 700, { size: 20, w: 700, c: 'rgba(220,230,255,.7)', a: ha * (1 - pk) });
+      arrow(c, 1110, 600, 1110, 170, { c: COL.cyan, w: 3, head: 16, a: ha * pk, glow: 'rgba(79,209,255,.8)' });
+      T(c, 'спираль:', 1140, 300, { al: 'left', size: 22, w: 800, c: COL.cyan, a: ha * pk });
+      T(c, 'каждый виток —', 1140, 332, { al: 'left', size: 18, w: 600, c: 'rgba(220,230,255,.75)', a: ha * pk });
+      T(c, 'новый порядок', 1140, 358, { al: 'left', size: 18, w: 600, c: 'rgba(220,230,255,.75)', a: ha * pk });
+      T(c, '● 1 | 0', 430, 300, { al: 'left', size: 18, w: 700, c: COL.gold, a: ha * pk }); T(c, '● серое', 430, 332, { al: 'left', size: 18, w: 700, c: '#c9cfdc', a: ha * pk });
+      pill(c, '✓ что точно', 330, 520, { c: COL.gold, size: 20, a: ha * ap(s(5), .3, .7), glow: 1 });
+      pill(c, '? что заострить', 1270, 520, { c: COL.pink, size: 20, a: ha * ap(s(5), .9, .7), glow: 1 });
+    }
+  }
+});
+
+/* ================= 7. COMPLEXITY HUMP ================= */
+const Sc = p => (1 - Math.exp(-3.2 * p)) / (1 - Math.exp(-3.2));
+const Cc = p => Math.pow(p, 1.3) * Math.pow(1 - p, 1.6) / (Math.pow(.448, 1.3) * Math.pow(.552, 1.6));
+scene({
+  id: 'complexity', chapter: 'Горб сложности', mood: 1,
+  beats: [
+    { t: 'Сначала точное ядро. Оба полюса — простые: «сливки сверху» и «всё перемешано» описываются одной фразой.', d: 7 },
+    { t: 'Сложны *промежуточные завитки*. Это строго показано в работе Ааронсона, Кэрролла и Уэллетт «The Coffee Automaton», 2014 год.', v: 'Сложны промежуточные завитки. Это строго показано в работе Ааронсона, Кэрролла и Уэллетт «Кофейный автомат», две тысячи четырнадцатый год.', d: 8 },
+    { t: 'Энтропия растёт всегда. А сложность сначала растёт, потом падает — *горб посередине*.', d: 6 },
+    { t: 'Противоположности действительно сходятся. Но *в простоте описания*, а не в энтропии.', sfx: 'ping', d: 5 }
+  ],
+  init(S) { S.cf = new Coffee(23); },
+  update(dt, S) { if (S.beat >= 0) S.cf.step(dt); },
+  draw(c, S) {
+    const s = k => S.s(k), a0 = ap(s(0), 0, .8), cf = S.cf;
+    drawCup(c, 430, 395, 228, () => cf.drawInto(c, 430, 395, 228, null));
+    const gx = 830, gy = 170, gw = 620, gh = 420, p = clamp(cf.tau / 20);
+    panel(c, gx - 40, gy - 60, gw + 90, gh + 130, { a: a0 });
+    axes(c, gx, gy, gw, gh, { a: a0, xl: '', yl: '' }); T(c, 'время →', gx + gw / 2, gy + gh + 86, { size: 15, w: 600, c: 'rgba(220,230,255,.5)', a: a0 });
+    const X = u => gx + u * gw, Y = v => gy + gh - v * gh * .92;
+    const sp = [], cp = [], sp2 = [], cp2 = [];
+    for (let i = 0; i <= 100; i++) { const u = i / 100; (u <= p ? sp : sp2).push([X(u), Y(Sc(u))]); (u <= p ? cp : cp2).push([X(u), Y(Cc(u))]); }
+    if (sp.length && sp2.length) { sp2.unshift(sp[sp.length - 1]); cp2.unshift(cp[cp.length - 1]); }
+    poly(c, sp2, COL.cyan, 2, a0 * .25, { dash: [6, 8] }); poly(c, cp2, COL.pink, 2, a0 * .25, { dash: [6, 8] });
+    poly(c, sp, COL.cyan, 4, a0, { glow: 'rgba(79,209,255,.8)' }); poly(c, cp, COL.pink, 4, a0, { glow: 'rgba(255,79,154,.8)' });
+    line(c, X(p), gy - 10, X(p), gy + gh, 'rgba(255,255,255,.5)', 1.5, a0, [4, 6]);
+    c.globalCompositeOperation = 'lighter'; glow(c, X(p), Y(Sc(p)), 18, COL.cyan, a0); glow(c, X(p), Y(Cc(p)), 18, COL.pink, a0); c.globalCompositeOperation = 'source-over';
+    T(c, 'энтропия', X(1) - 4, Y(1) - 22, { al: 'right', size: 20, w: 800, c: COL.cyan, a: a0 * ap(s(2), 0, .8) });
+    T(c, 'сложность', X(.448), Y(1) - 24, { size: 20, w: 800, c: COL.pink, a: a0 * ap(s(1), .5, .8) });
+    const la = ap(s(0), 1.5, .8);
+    T(c, 'просто', X(.02), gy + gh + 30, { al: 'left', size: 17, w: 800, c: COL.gold, a: la }); T(c, '«сливки сверху»', X(.02), gy + gh + 54, { al: 'left', size: 15, w: 600, c: 'rgba(220,230,255,.7)', a: la });
+    T(c, 'просто', X(1), gy + gh + 30, { al: 'right', size: 17, w: 800, c: COL.gold, a: la * ap(s(0), 1, .8) }); T(c, '«всё перемешано»', X(1), gy + gh + 54, { al: 'right', size: 15, w: 600, c: 'rgba(220,230,255,.7)', a: la * ap(s(0), 1, .8) });
+    T(c, 'сложно', X(.448), gy + gh + 30, { size: 17, w: 800, c: COL.pink, a: ap(s(1), 0, .8) }); T(c, 'завитки', X(.448), gy + gh + 54, { size: 15, w: 600, c: 'rgba(220,230,255,.7)', a: ap(s(1), 0, .8) });
+    T(c, 'The Coffee Automaton · 2014', gx + gw / 2, gy - 34, { f: F.mono, size: 15, w: 600, c: 'rgba(220,230,255,.55)', a: ap(s(1), 1, .8) });
+    pill(c, 'сходятся простота описания, а не энтропия', 800, 690, { c: COL.gold, size: 21, a: ap(s(3), .5, .8), glow: 1 });
+  }
+});
+
+/* ================= 8. TWO KINDS OF "ONE" + LIOUVILLE ================= */
+scene({
+  id: 'twoOnes', chapter: 'Две единицы', mood: 5,
+  beats: [
+    { t: 'Теперь заострим. На самом деле «единиц» — *две*.', sfx: 'pop', d: 3 },
+    { t: 'Первая — буквальное отсутствие различий: все клетки заполнены. W = 1, S = 0. Но здесь *ничего не может происходить*.', v: 'Первая — буквальное отсутствие различий: все клетки заполнены. Способ один, энтропия ноль. Но здесь ничего не может происходить.' },
+    { t: 'Вторая — однородная серая смесь. Она «одна» только для грубого глаза, а под ней — *море различимых расстановок*.', d: 5 },
+    { t: 'Одно макросостояние, за которым море микросостояний, — это и есть *определение высокой энтропии*. Переименованием «серое → единица» её не сбросить.' },
+    { t: 'А если повышать уровень восприятия, пока различия не станут неразличимы совсем? Беда в том, что фундаментальная динамика *сохраняет различия*.', sfx: 'riser' },
+    { t: 'В классике это *теорема Лиувилля*, в квантовой физике — *унитарность*: два разных микросостояния никогда не сливаются в одно.', d: 5 },
+    { t: 'Облачко состояний вытягивается в тонкую нить. Грубо — всё серое. Но объём не изменился, и нить *помнит*, откуда пришла.', d: 5.5 }
+  ],
+  init(S) {
+    const r = mulberry(55); S.ph = Array.from({ length: 3600 }, () => { const a = r() * TAU, d = Math.sqrt(r()) * .15, x = .42 + Math.cos(a) * d, y = Math.sin(a) * d; return { r: Math.hypot(x, y), th: Math.atan2(y, x), hue: a / TAU, d }; });
+    S.full = new Grid(); S.full.setCells([...Array(100).keys()]); S.full.P = S.full.P.slice(0, 100);
+    S.micro = new Int8Array(64);
+  },
+  update(dt, S) { if ((S.fc = (S.fc || 0) + 1) % 7 === 0) for (let i = 0; i < 64; i++) S.micro[i] = Math.random() < .5 ? 1 : 0; },
+  draw(c, S) {
+    const s = k => S.s(k), t = S.t;
+    const pa = ap(s(0), .3, .9) * (1 - ap(s(4), 0, .7));
+    if (pa > 0) {
+      T(c, 'ЕДИНИЦА № 1', 350, 116, { f: F.disp, size: 20, w: 700, ls: 3, c: COL.gold, a: pa });
+      T(c, 'ЕДИНИЦА № 2', 1250, 116, { f: F.disp, size: 20, w: 700, ls: 3, c: '#c9cfdc', a: pa });
+      S.full.draw(c, 140, 176, 42, { a: pa * ap(s(1), 0, .8) + pa * .25 * (1 - ap(s(1), 0, .8)) });
+      const a1 = pa * ap(s(1), .6, .8);
+      T(c, 'W = 1 · S = 0', 350, 650, { f: F.mono, size: 26, w: 600, c: COL.gold, a: a1 });
+      T(c, 'ничего не может происходить', 350, 690, { size: 19, w: 600, c: 'rgba(220,230,255,.7)', a: pa * ap(s(1), 1.8, .8) });
+      // clock (stopped)
+      const ca = pa * ap(s(1), 2.4, .8); if (ca > 0) { c.save(); c.globalAlpha *= ca; c.strokeStyle = 'rgba(220,230,255,.8)'; c.lineWidth = 3; c.beginPath(); c.arc(540, 660, 22, 0, TAU); c.stroke(); c.beginPath(); c.moveTo(540, 660); c.lineTo(540, 645); c.moveTo(540, 660); c.lineTo(552, 664); c.stroke(); c.restore(); T(c, '⏸', 580, 662, { size: 22, c: COL.pink, a: ca }); }
+      // gray mixture with magnifier
+      const cx = 1250, cy = 390, R = 190, a2 = pa * ap(s(2), 0, .8) + pa * .25 * (1 - ap(s(2), 0, .8));
+      smoothDisk(c, cx, cy, R, a2);
+      const lx = cx + 85 * Math.cos(t * .6), ly = cy + 70 * Math.sin(t * .83), lr = 78, la = pa * ap(s(2), 1, .8);
+      if (la > 0) {
+        c.save(); c.globalAlpha *= la; c.beginPath(); c.arc(lx, ly, lr, 0, TAU); c.fillStyle = '#0b0f24'; c.fill(); c.clip();
+        const cs = 19; for (let i = 0; i < 64; i++) { const x = lx - 76 + (i % 8) * cs, y = ly - 76 + (i / 8 | 0) * cs; rr(c, x + 1, y + 1, cs - 2, cs - 2, 3); c.fillStyle = S.micro[i] ? COL.gold : 'rgba(140,160,255,.12)'; c.fill(); }
+        c.restore();
+        c.save(); c.globalAlpha *= la; c.strokeStyle = '#e6ebff'; c.lineWidth = 6; c.beginPath(); c.arc(lx, ly, lr, 0, TAU); c.stroke(); c.lineWidth = 10; c.lineCap = 'round'; c.beginPath(); c.moveTo(lx + lr * .72, ly + lr * .72); c.lineTo(lx + lr * 1.25, ly + lr * 1.25); c.stroke(); c.restore();
+      }
+      T(c, 'одна — только для грубого глаза', cx, 650, { size: 19, w: 600, c: 'rgba(220,230,255,.75)', a: pa * ap(s(2), .6, .8) });
+      T(c, 'W ≈ 10²⁹ расстановок', cx, 690, { f: F.mono, size: 22, w: 600, c: COL.cyan, a: pa * ap(s(2), 1.8, .8) });
+      const da = pa * ap(s(3), .3, .8);
+      if (da > 0) {
+        panel(c, 596, 250, 420, 170, { a: da, f0: 'rgba(8,10,26,.92)', f1: 'rgba(8,10,26,.92)', stroke: 'rgba(255,79,154,.5)' });
+        T(c, '1 макросостояние', 806, 290, { f: F.disp, size: 22, w: 700, a: da });
+        T(c, '↔ море микросостояний', 806, 330, { f: F.disp, size: 22, w: 700, c: COL.cyan, a: da * ap(s(3), .8, .6) });
+        T(c, '= высокая энтропия', 806, 378, { f: F.disp, size: 22, w: 800, c: COL.pink, a: da * ap(s(3), 1.6, .6) });
+      }
+    }
+    // Liouville: phase-space filament
+    const la2 = ap(s(4), .4, 1);
+    if (la2 > 0) {
+      const tw = Math.max(0, s(4) - 1.5), sz = 460, P1 = [200, 190], P2 = [940, 190], half = sz / 2;
+      T(c, 'ФАЗОВОЕ ПРОСТРАНСТВО', 800, 108, { f: F.disp, size: 20, w: 700, ls: 4, a: la2 });
+      panel(c, P1[0], P1[1], sz, sz, { a: la2 }); panel(c, P2[0], P2[1], sz, sz, { a: la2 });
+      T(c, 'точно', P1[0] + 22, P1[1] + 28, { al: 'left', size: 18, w: 800, c: COL.cyan, a: la2 });
+      T(c, 'грубо', P2[0] + 22, P2[1] + 28, { al: 'left', size: 18, w: 800, c: '#c9cfdc', a: la2 });
+      const B = 18, cov = new Uint8Array(B * B), hueOn = ap(s(6), .5, 1.2);
+      c.save(); c.globalAlpha *= la2;
+      for (const q of S.ph) {
+        const om = .25 + 1.7 * (1 - q.r) * (1 - q.r), th = q.th + om * tw, x = Math.cos(th) * q.r, y = Math.sin(th) * q.r;
+        const px = P1[0] + half + x * half * .95, py = P1[1] + half + y * half * .95;
+        c.fillStyle = hueOn > .02 ? `hsla(${(q.hue * 360) | 0},90%,65%,${.4 + .6 * hueOn})` : 'rgba(120,220,255,.85)'; c.fillRect(px - 1, py - 1, 2, 2);
+        cov[clamp((y * .95 + 1) / 2 * B | 0, 0, B - 1) * B + clamp((x * .95 + 1) / 2 * B | 0, 0, B - 1)] = 1;
+      }
+      let n = 0; const cs = sz / B;
+      for (let i = 0; i < B * B; i++) if (cov[i]) { n++; rr(c, P2[0] + (i % B) * cs + 1, P2[1] + (i / B | 0) * cs + 1, cs - 2, cs - 2, 3); c.fillStyle = 'rgba(190,198,215,.55)'; c.fill(); }
+      c.restore();
+      T(c, 'объём: 1,8 % — не меняется', P1[0] + half, P1[1] + sz + 32, { size: 18, w: 700, c: COL.cyan, a: la2 * ap(s(5), .3, .8) });
+      T(c, 'грубая площадь: ' + Math.round(n / (B * B) * 100) + ' %', P2[0] + half, P2[1] + sz + 32, { size: 18, w: 700, c: '#c9cfdc', a: la2 * ap(s(5), .8, .8) });
+      pill(c, 'теорема Лиувилля · унитарность', 800, 150, { c: COL.gold, size: 17, a: la2 * ap(s(5), 0, .8) * (1 - ap(s(6), 0, .5)) });
+      pill(c, 'каждая точка помнит, откуда пришла', 800, 150, { c: COL.pink, size: 17, a: la2 * ap(s(6), .6, .8), glow: 1 });
+    }
+  }
+});
+
+/* ================= 9. SPIN ECHO ================= */
+scene({
+  id: 'echo', chapter: 'Спиновое эхо', mood: 4,
+  beats: [
+    { t: 'Это видно в эксперименте со *спиновым эхом* (Эрвин Хан, 1950). Спины в образце выстраивают в одну сторону…', v: 'Это видно в эксперименте со спиновым эхом. Эрвин Хан, тысяча девятьсот пятидесятый год. Спины в образце выстраивают в одну сторону…', d: 4 },
+    { t: '…они расходятся, и суммарная намагниченность падает до нуля. Полное «серое»: прибор не видит никакого порядка.', d: 5.5 },
+    { t: 'Теперь импульс, который обращает движение… и порядок *сам возникает из серого*!', d: 7 },
+    { t: 'Различия никуда не делись. Серое было единицей *только для прибора*. Повышение уровня восприятия меняет описание, а не сам мир.', d: 5 }
+  ],
+  init(S) { const r = mulberry(21), n = 32; S.sp = []; for (let i = 0; i < n; i++) S.sp.push({ w: -1.8 + 3.6 * (i + .5) / n + (r() - .5) * .06, phi: 0, P: 0 }); S.M = []; S.Mc = 1; S.pulse = null; S.T1 = 0; S.echo = null; },
+  update(dt, S) {
+    const s1 = S.s(1), s2 = S.s(2);
+    if (s2 >= .8) {
+      if (S.pulse == null) { S.pulse = S.t; S.pulseX = S.s(0); for (const p of S.sp) p.P = p.phi; AudioE.play('zap'); }
+      const e = s2 - .8, k = S.T1 / 4.2; for (const p of S.sp) p.phi = -p.P + p.w * e * k;
+    } else if (s1 >= .3) { const e = s1 - .3; S.T1 = e; for (const p of S.sp) p.phi = p.w * e; }
+    else for (const p of S.sp) p.phi = .05 * Math.sin(S.t * 2 + p.w * 3);
+    let mx = 0, my = 0; for (const p of S.sp) { mx += Math.sin(p.phi); my += Math.cos(p.phi); }
+    S.Mc = Math.hypot(mx, my) / S.sp.length; S.Mang = Math.atan2(mx, my);
+    if (S.beat >= 0) S.M.push([S.s(0), S.Mc]);
+    if (S.pulse != null && S.echo == null && S.Mc > .93 && S.t - S.pulse > 1) { S.echo = S.t; S.echoX = S.s(0); AudioE.play('ping', { f: 1568, v: .2 }); AudioE.play('shimmer'); }
+  },
+  draw(c, S) {
+    const s = k => S.s(k), a0 = ap(s(0), 0, .8), cx = 500, cy = 400, R = 240;
+    c.save(); c.globalAlpha *= a0; c.strokeStyle = 'rgba(255,255,255,.1)'; c.lineWidth = 26; c.beginPath(); c.arc(cx, cy, R * .86, 0, TAU); c.stroke(); c.restore();
+    for (let k = 0; k < 24; k++) { const a = k / 24 * TAU; line(c, cx + Math.cos(a) * R * .95, cy + Math.sin(a) * R * .95, cx + Math.cos(a) * R, cy + Math.sin(a) * R, 'rgba(255,255,255,.3)', 2, a0); }
+    c.save(); c.globalAlpha *= a0 * .75; c.lineCap = 'round';
+    for (const p of S.sp) { const a = p.phi - Math.PI / 2, col = mixC(COL.cyan, COL.pink, (p.w + 1.8) / 3.6); c.strokeStyle = col; c.lineWidth = 2.2; c.beginPath(); c.moveTo(cx, cy); c.lineTo(cx + Math.cos(a) * R * .8, cy + Math.sin(a) * R * .8); c.stroke(); }
+    c.restore();
+    c.globalCompositeOperation = 'lighter';
+    for (const p of S.sp) { const a = p.phi - Math.PI / 2; glow(c, cx + Math.cos(a) * R * .86, cy + Math.sin(a) * R * .86, 16, p.w > 0 ? COL.pink : COL.cyan, a0 * .9); }
+    c.globalCompositeOperation = 'source-over';
+    const ma = S.Mang - Math.PI / 2, ml = S.Mc * R * .8;
+    arrow(c, cx, cy, cx + Math.cos(ma) * Math.max(ml, 1), cy + Math.sin(ma) * Math.max(ml, 1), { c: COL.gold, w: 8, head: 24, a: a0 * clamp(S.Mc * 3), glow: 'rgba(255,181,71,.9)' });
+    T(c, 'M', cx + Math.cos(ma) * (ml + 34), cy + Math.sin(ma) * (ml + 34), { f: F.disp, size: 24, w: 800, c: COL.gold, a: a0 * clamp(S.Mc * 3) });
+    c.save(); c.globalAlpha *= a0; c.beginPath(); c.arc(cx, cy, 9, 0, TAU); c.fillStyle = '#fff'; c.fill(); c.restore();
+    pill(c, 'Эрвин Хан · 1950', cx, 118, { c: COL.cyan, size: 17, a: a0 });
+    const gray = s(1) > 2 && S.pulse == null && S.Mc < .2;
+    S.grayA = lerp(S.grayA || 0, gray ? 1 : 0, .08);
+    pill(c, 'M ≈ 0 · «серое»: порядка не видно', cx, 700, { c: '#c9cfdc', size: 18, a: S.grayA });
+    // graph
+    const gx = 900, gy = 210, gw = 560, gh = 330; axes(c, gx, gy, gw, gh, { a: a0, xl: 'время', yl: 'намагниченность M' });
+    const tmax = Math.max(16, (S.M.length ? S.M[S.M.length - 1][0] : 0) + 1), X = u => gx + u / tmax * gw, Y = v => gy + gh - v * gh * .9;
+    const pts = S.M.filter((_, i) => i % 2 === 0).map(q => [X(q[0]), Y(q[1])]); poly(c, pts, COL.gold, 3, a0, { glow: 'rgba(255,181,71,.8)' });
+    if (S.pulse != null) {
+      const fa = 1 - ap(S.t - S.pulse, 0, .7);
+      if (fa > 0) { c.save(); c.globalAlpha *= fa * .35; c.fillStyle = '#fff'; c.fillRect(-300, -200, W + 600, H + 400); c.restore(); c.save(); c.globalAlpha *= fa; c.strokeStyle = COL.pink; c.lineWidth = 4; c.beginPath(); c.arc(cx, cy, R * (1 + (1 - fa) * .5), 0, TAU); c.stroke(); c.restore(); }
+      line(c, X(S.pulseX), gy, X(S.pulseX), gy + gh, COL.pink, 2, a0, [6, 6]); T(c, 'импульс π', X(S.pulseX) + 8, gy + 14, { al: 'left', size: 16, w: 700, c: COL.pink, a: a0 });
+      pill(c, 'импульс: движение обращено', cx, 700, { c: COL.pink, size: 18, a: ap(S.t - S.pulse, 0, .4) * (1 - ap(S.t - S.pulse, 2.2, .5)) });
+    }
+    if (S.echo != null) {
+      const ea = ap(S.t - S.echo, 0, .3);
+      T(c, 'ЭХО!', X(S.echoX), Y(1) - 26, { f: F.disp, size: 22, w: 800, c: COL.gold, a: ea, glow: 'rgba(255,181,71,.8)' });
+      const rg = (S.t - S.echo) % 1.6; c.save(); c.globalAlpha *= (1 - rg / 1.6) * .8; c.strokeStyle = COL.gold; c.lineWidth = 3; c.beginPath(); c.arc(cx, cy, R * (1 + rg * .3), 0, TAU); c.stroke(); c.restore();
+      pill(c, 'порядок вернулся из «серого»', cx, 700, { c: COL.gold, size: 18, a: ea, glow: 1 });
+    }
+    pill(c, 'мир помнит каждую расстановку', gx + gw / 2, 640, { c: COL.cyan, size: 19, a: ap(s(3), .6, .8), glow: 1 });
+  }
+});
+</script>
+<script>
+'use strict';
+/* =====================================================================
+   SCENES — part 3
+   ===================================================================== */
+
+/* ================= 10. GIBBS PARADOX ================= */
+class GasBox {
+  constructor(n, w, h, types, seed) {
+    const r = mulberry(seed); this.w = w; this.h = h; this.lift = 0; this.P = [];
+    for (let i = 0; i < n; i++) { const left = i < n / 2, a = r() * TAU, sp = 90 + r() * 70; this.P.push({ x: left ? 10 + r() * (w / 2 - 26) : w / 2 + 16 + r() * (w / 2 - 26), y: 10 + r() * (h - 20), vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, k: left ? types[0] : types[1] }); }
+  }
+  step(dt) {
+    const w = this.w, h = this.h, wb = h * (1 - this.lift), m = w / 2;
+    for (const p of this.P) {
+      const ox = p.x; p.x += p.vx * dt; p.y += p.vy * dt;
+      if (p.x < 6) { p.x = 6; p.vx = Math.abs(p.vx); } if (p.x > w - 6) { p.x = w - 6; p.vx = -Math.abs(p.vx); }
+      if (p.y < 6) { p.y = 6; p.vy = Math.abs(p.vy); } if (p.y > h - 6) { p.y = h - 6; p.vy = -Math.abs(p.vy); }
+      if (this.lift < 1 && p.y < wb) { if (ox <= m - 6 && p.x > m - 6) { p.x = m - 6; p.vx = -Math.abs(p.vx); } else if (ox >= m + 6 && p.x < m + 6) { p.x = m + 6; p.vx = Math.abs(p.vx); } }
+    }
+  }
+  mixS() {
+    const cnt = [[0, 0], [0, 0]]; for (const p of this.P) cnt[p.x < this.w / 2 ? 0 : 1][p.k]++; let S = 0, N = 0;
+    for (const q of cnt) { const n = q[0] + q[1]; if (!n) continue; const f = q[0] / n, hh = f > 0 && f < 1 ? -(f * Math.log(f) + (1 - f) * Math.log(1 - f)) / Math.LN2 : 0; S += hh * n; N += n; }
+    return N ? S / N : 0;
+  }
+  draw(c, x, y, a, cols) {
+    if (a <= .003) return; panel(c, x - 4, y - 4, this.w + 8, this.h + 8, { a, r: 14 });
+    c.save(); c.beginPath(); c.rect(x, y, this.w, this.h); c.clip(); c.globalCompositeOperation = 'lighter';
+    for (const p of this.P) glow(c, x + p.x, y + p.y, 11, cols[p.k], a * .95);
+    c.globalCompositeOperation = 'source-over';
+    if (this.lift < 1) { c.globalAlpha *= a; const wy = y - this.lift * this.h; const g = c.createLinearGradient(x + this.w / 2 - 5, 0, x + this.w / 2 + 5, 0); g.addColorStop(0, '#9aa6c8'); g.addColorStop(.5, '#f2f5ff'); g.addColorStop(1, '#9aa6c8'); c.fillStyle = g; c.fillRect(x + this.w / 2 - 5, wy, 10, this.h); }
+    c.restore();
+  }
+}
+scene({
+  id: 'gibbs', chapter: 'Парадокс Гиббса', mood: 2,
+  beats: [
+    { t: 'И всё же у интуиции «перемешанное стало несмешанным» есть строгая версия — *парадокс Гиббса*.', d: 3 },
+    { t: 'Смешаем два *разных* газа — энтропия растёт.', sfx: 'whoosh', d: 5.5 },
+    { t: 'Смешаем газ с *таким же* газом — не растёт вообще. Смешанное неотличимо от несмешанного.', sfx: 'whoosh', d: 6 },
+    { t: 'Критерий — не «мы не различаем», а «*не различает никакое возможное измерение*». Как у тождественных квантовых частиц.', d: 5 },
+    { t: 'Значит, серое станет единицей, только если различия *исчезнут физически*, а не для восприятия. Как тогда спасти спираль? Есть *три пути*.', sfx: 'shimmer', d: 5 }
+  ],
+  init(S) { S.A = new GasBox(130, 600, 300, [0, 1], 61); S.B = new GasBox(130, 600, 300, [0, 0], 62); S.SA = 0; },
+  update(dt, S) {
+    S.A.lift = eio(ap(S.s(1), .2, 1.2)); S.B.lift = eio(ap(S.s(2), .2, 1.2)); S.A.step(dt); S.B.step(dt);
+    if ((S.fc = (S.fc || 0) + 1) % 3 === 0) S.SA = lerp(S.SA, S.A.mixS(), .4);
+  },
+  draw(c, S) {
+    const s = k => S.s(k), a0 = ap(s(0), 0, .8), A = [140, 190], B = [860, 190];
+    T(c, 'ДВА РАЗНЫХ ГАЗА', A[0] + 300, 150, { f: F.disp, size: 18, w: 700, ls: 3, a: a0, grad: [COL.cyan, COL.pink] });
+    T(c, 'ОДИН И ТОТ ЖЕ ГАЗ', B[0] + 300, 150, { f: F.disp, size: 18, w: 700, ls: 3, c: COL.cyan, a: a0 });
+    S.A.draw(c, A[0], A[1], a0, [COL.cyan, COL.pink]); S.B.draw(c, B[0], B[1], a0, [COL.cyan, COL.cyan]);
+    meter(c, A[0], 540, 600, S.SA, { a: a0, label: 'энтропия смешения', value: 'ΔS', c0: COL.cyan, c1: COL.pink });
+    meter(c, B[0], 540, 600, 0, { a: a0, label: 'энтропия смешения', value: 'ΔS', c0: COL.cyan, c1: COL.cyan });
+    T(c, 'ΔS > 0', A[0] + 300, 600, { f: F.disp, size: 34, w: 800, c: COL.pink, a: ap(s(1), 2.2, .8), glow: 'rgba(255,79,154,.6)' });
+    T(c, 'ΔS = 0', B[0] + 300, 600, { f: F.disp, size: 34, w: 800, c: COL.gold, a: ap(s(2), 2.2, .8), glow: 'rgba(255,181,71,.6)' });
+    const qa = ap(s(3), .3, .9) * (1 - ap(s(4), 0, .6));
+    if (qa > 0) {
+      const u = eio(((s(3) - .3) % 2.6) / 1.6), x1 = lerp(720, 880, u), x2 = lerp(880, 720, u), y = 670, lift = Math.sin(u * Math.PI) * 26;
+      c.globalCompositeOperation = 'lighter'; glow(c, x1, y - lift, 26, COL.cyan, qa); glow(c, x2, y + lift, 26, COL.cyan, qa); c.globalCompositeOperation = 'source-over';
+      T(c, 'e⁻', x1, y - lift, { size: 18, w: 800, c: '#04121c', a: qa }); T(c, 'e⁻', x2, y + lift, { size: 18, w: 800, c: '#04121c', a: qa });
+      T(c, 'обмен тождественных частиц → то же самое состояние', 800, 716, { size: 18, w: 600, c: 'rgba(220,230,255,.8)', a: qa });
+    }
+    const pa = ap(s(4), 1.5, .8);
+    ['1 · стереть различия', '2 · добавить ноль', '3 · отключить различия'].forEach((t, i) => pill(c, t, 400 + i * 400, 680, { c: [COL.violet, COL.gold, COL.cyan][i], size: 20, a: pa * ap(s(4), 1.5 + i * .5, .7), glow: 1 }));
+  }
+});
+
+/* ================= 11. PENROSE: CONFORMAL CYCLIC COSMOLOGY ================= */
+function trumpet(c, x0, L, cy, rmax, a) {
+  if (a <= .003) return; c.save(); c.globalAlpha *= a; const N = 50, r = s => 6 + rmax * Math.pow(s, 1.7);
+  c.beginPath(); for (let i = 0; i <= N; i++) { const s = i / N; i ? c.lineTo(x0 + s * L, cy - r(s)) : c.moveTo(x0, cy - r(0)); } for (let i = N; i >= 0; i--) { const s = i / N; c.lineTo(x0 + s * L, cy + r(s)); } c.closePath();
+  const g = c.createLinearGradient(x0, 0, x0 + L, 0); g.addColorStop(0, 'rgba(255,250,220,.95)'); g.addColorStop(.12, 'rgba(255,170,80,.65)'); g.addColorStop(.55, 'rgba(160,90,255,.3)'); g.addColorStop(1, 'rgba(60,40,140,.14)');
+  c.fillStyle = g; c.fill(); c.strokeStyle = 'rgba(200,190,255,.4)'; c.lineWidth = 1.5; c.stroke();
+  c.beginPath(); c.ellipse(x0 + L, cy, 14, r(1), 0, 0, TAU); c.strokeStyle = 'rgba(190,170,255,.7)'; c.stroke();
+  c.globalCompositeOperation = 'lighter'; glow(c, x0 + 4, cy, 40, COL.white, .9); c.restore();
+}
+function drawClock(c, x, y, r, a, t) { if (a <= .003) return; c.save(); c.globalAlpha *= a; c.strokeStyle = '#e6ebff'; c.lineWidth = 4; c.beginPath(); c.arc(x, y, r, 0, TAU); c.stroke(); for (let k = 0; k < 12; k++) { const q = k / 12 * TAU; c.beginPath(); c.moveTo(x + Math.cos(q) * r * .8, y + Math.sin(q) * r * .8); c.lineTo(x + Math.cos(q) * r * .92, y + Math.sin(q) * r * .92); c.stroke(); } c.lineCap = 'round'; c.beginPath(); c.moveTo(x, y); c.lineTo(x + Math.cos(t - Math.PI / 2) * r * .7, y + Math.sin(t - Math.PI / 2) * r * .7); c.moveTo(x, y); c.lineTo(x + Math.cos(t / 12) * r * .45, y + Math.sin(t / 12) * r * .45); c.stroke(); c.restore(); }
+function drawRuler(c, x, y, w, a) { if (a <= .003) return; c.save(); c.globalAlpha *= a; rr(c, x - w / 2, y - 18, w, 36, 5); c.fillStyle = 'rgba(255,181,71,.18)'; c.fill(); c.strokeStyle = COL.gold; c.lineWidth = 2.5; c.stroke(); for (let k = 1; k < 16; k++) { const xx = x - w / 2 + k * w / 16; c.beginPath(); c.moveTo(xx, y - 18); c.lineTo(xx, y - 18 + (k % 4 ? 9 : 16)); c.stroke(); } c.restore(); }
+scene({
+  id: 'penrose', chapter: 'Путь 1. Стереть различия', mood: 5,
+  beats: [
+    { t: 'Путь первый — *стереть различия физически*. Это конформная циклическая космология Роджера Пенроуза: история мира как цепочка эонов.', d: 6 },
+    { t: 'В далёком будущем — тепловая смерть: звёзды погаснут, испарятся даже чёрные дыры. Останется только *безмассовое излучение*.', d: 8.5 },
+    { t: 'Из него нельзя построить ни часы, ни линейку. Вселенная *забывает свой размер*.', d: 5 },
+    { t: 'Бесконечно большое и холодное геометрически неотличимо от бесконечно малого и горячего — и становится *следующим Большим взрывом*.', d: 6.5 },
+    { t: 'Это ровно интуиция «серое стало единицей», доведённая до физики. Но у неё есть цена.' },
+    { t: 'Нужно уничтожение информации в чёрных дырах — в это сейчас мало кто верит. Нужно, чтобы электроны со временем теряли массу. А кольца и «точки Хокинга» в реликтовом излучении независимые проверки *не подтвердили*.', d: 8 }
+  ],
+  init(S) {
+    const r = mulberry(88); S.gal = [];
+    for (let k = 0; k < 7; k++) { const a = k / 7 * TAU + r(), d = .25 + r() * .5; S.gal.push({ x: Math.cos(a) * d, y: Math.sin(a) * d, rot: r() * TAU, dots: Array.from({ length: 46 }, () => { const rd = Math.pow(r(), .7) * .12, arm = r() < .5 ? 0 : Math.PI; return { r: rd, th: arm + rd * 26 + (r() - .5) * .5 }; }) }); }
+    S.ph = Array.from({ length: 70 }, () => ({ x: (r() - .5) * 1.4, y: (r() - .5) * 1.4, a: r() * TAU, p: r() * TAU }));
+    S.hk = [];
+  },
+  update(dt, S) {
+    for (const p of S.ph) { p.x += Math.cos(p.a) * .16 * dt; p.y += Math.sin(p.a) * .16 * dt; if (p.x * p.x + p.y * p.y > .9) { p.a += Math.PI + (Math.random() - .5); p.x *= .97; p.y *= .97; } }
+    const u1 = S.s(1), ev = ap(u1, 4.8, 2.8);
+    if (u1 > 4.6 && ev < .98 && S.s(3) < 0) for (const g of S.gal) if (Math.random() < .3) { const a = Math.random() * TAU; S.hk.push({ x: g.x, y: g.y, vx: Math.cos(a) * .3, vy: Math.sin(a) * .3, t: 0 }); }
+    for (const h of S.hk) { h.x += h.vx * dt; h.y += h.vy * dt; h.t += dt; } S.hk = S.hk.filter(h => h.t < 1.4);
+    if (u1 > 5 && once(S, 'hw')) AudioE.play('cascade', { n: 10, dt: .12 });
+    if (S.s(3) > .2 && once(S, 'rz')) AudioE.play('riser', { d: 1.9, v: .2 });
+    if (S.s(3) > 2.1 && once(S, 'bg')) AudioE.play('boom', { v: .8 });
+    if (S.s(2) > 1.4 && once(S, 'cl')) AudioE.play('tick', { f: 1800, v: .12 });
+  },
+  draw(c, S) {
+    const s = k => S.s(k), t = S.t;
+    const ca = ap(s(0), 0, 1) * (1 - ap(s(1), 0, .8));
+    if (ca > 0) {
+      for (let k = 0; k < 3; k++) {
+        const x0 = 140 + k * 460; trumpet(c, x0, 390, 390, 150, ca * ap(s(0), k * .7, .9));
+        T(c, 'ЭОН ' + (k + 1), x0 + 250, 190, { f: F.disp, size: 18, w: 600, ls: 4, c: COL.violet, a: ca * ap(s(0), k * .7 + .3, .8) });
+        if (k < 2) { const mx = x0 + 390, nx = x0 + 460; line(c, mx, 234, nx, 386, 'rgba(255,255,255,.5)', 1.5, ca * ap(s(0), k * .7 + .6, .8), [4, 6]); line(c, mx, 546, nx, 394, 'rgba(255,255,255,.5)', 1.5, ca * ap(s(0), k * .7 + .6, .8), [4, 6]); T(c, '≡', mx + 30, 390, { f: F.disp, size: 30, w: 700, a: ca * ap(s(0), k * .7 + .6, .8) }); }
+      }
+      T(c, 'конец одного эона ≡ Большой взрыв следующего', 800, 620, { size: 21, w: 700, c: 'rgba(230,235,255,.85)', a: ca * ap(s(0), 2.4, .8) });
+      const bx = 140 + ((t * 160) % 1380); c.save(); c.globalCompositeOperation = 'lighter'; c.globalAlpha *= ca * .13; const g = c.createLinearGradient(bx - 60, 0, bx + 60, 0); g.addColorStop(0, 'rgba(255,255,255,0)'); g.addColorStop(.5, 'rgba(255,255,255,1)'); g.addColorStop(1, 'rgba(255,255,255,0)'); c.fillStyle = g; c.fillRect(bx - 60, 220, 120, 340); c.restore();
+    }
+    const ua = ap(s(1), .3, 1);
+    if (ua <= 0) return;
+    const mv = eio(ap(s(4), 0, 1.2)), cx = lerp(800, 430, mv), cy = lerp(390, 400, mv), R0 = lerp(290, 220, mv);
+    const s3 = s(3), sh = eio(ap(s3, .3, 1.8)), banged = s3 >= 2.1, post = ap(s3, 2.1, 2.2);
+    const R = banged ? R0 * (.03 + .97 * eout(ap(s3, 2.1, 2))) : R0 * (1 - .97 * sh);
+    const u1 = Math.max(0, s(1)), cf = banged ? 0 : ap(u1, 2.4, 2.2), ev = banged ? 0 : ap(u1, 4.8, 2.8);
+    let temp = banged ? lerp(1, .5, post) : lerp(.5, 0, ap(u1, 3, 6)); if (!banged && sh > 0) temp = lerp(temp, 1, sh * sh);
+    const tc3 = (cold, norm, hot) => temp > .5 ? mixC(norm, hot, (temp - .5) * 2) : mixC(cold, norm, temp * 2);
+    c.save(); c.globalAlpha *= ua;
+    const g = c.createRadialGradient(cx, cy, 0, cx, cy, Math.max(2, R));
+    g.addColorStop(0, tc3('#1a0a1c', '#141f52', '#fff4cc')); g.addColorStop(.72, tc3('#12040f', '#0b1233', '#ffab5a')); g.addColorStop(1, tc3('#5a1030', '#3a4cb0', '#ff5a2a'));
+    c.beginPath(); c.arc(cx, cy, Math.max(2, R), 0, TAU); c.fillStyle = g; c.shadowColor = tc3('#9a2050', '#5a70ff', '#ffb070'); c.shadowBlur = 60; c.fill(); c.shadowBlur = 0;
+    c.save(); c.clip(); c.globalCompositeOperation = 'lighter';
+    const gA = banged ? post : 1;
+    for (const G of S.gal) {
+      const gx = cx + G.x * R, gy = cy + G.y * R, sc = R * (1 - cf * .92), rot = G.rot + t * .6;
+      if (!banged && ev >= 1) continue;
+      if (gA > 0) for (const d of G.dots) { const a = d.th + rot; glow(c, gx + Math.cos(a) * d.r * sc, gy + Math.sin(a) * d.r * sc * .8, 8, COL.gold, gA * .8 * (1 - ev)); }
+    }
+    for (const h of S.hk) glow(c, cx + h.x * R, cy + h.y * R, 7, COL.white, (1 - h.t / 1.4) * .9);
+    const pa = banged ? 1 - post : ap(u1, 3, 2);
+    if (pa > 0) {
+      c.strokeStyle = 'rgba(160,230,255,.9)'; c.lineWidth = 2; c.globalAlpha = ua * pa;
+      for (const p of S.ph) { const x = cx + p.x * R, y = cy + p.y * R, dx = Math.cos(p.a), dy = Math.sin(p.a); c.beginPath(); for (let k = 0; k <= 12; k++) { const q = k / 12 * 26 - 13, w = Math.sin(q * .8 + t * 12 + p.p) * 3; const px = x + dx * q - dy * w, py = y + dy * q + dx * w; k ? c.lineTo(px, py) : c.moveTo(px, py); } c.stroke(); }
+      c.globalAlpha = ua;
+    }
+    c.restore();
+    c.globalCompositeOperation = 'source-over';
+    if (!banged) for (const G of S.gal) { const rb = (3 + 13 * cf) * (1 - ev) * (R / R0); if (rb > .5) { const gx = cx + G.x * R, gy = cy + G.y * R; c.beginPath(); c.arc(gx, gy, rb, 0, TAU); c.fillStyle = '#000'; c.fill(); c.strokeStyle = 'rgba(255,200,140,.9)'; c.lineWidth = 1.6; c.stroke(); } }
+    c.restore();
+    if (banged) { const fa = 1 - ap(s3 - 2.1, 0, .9); if (fa > 0) { c.save(); c.globalAlpha *= fa; c.fillStyle = '#fff6e0'; c.fillRect(-300, -200, W + 600, H + 400); c.restore(); } }
+    T(c, banged ? 'ЭОН 2' : 'ЭОН 1', cx, cy - R0 - 34, { f: F.disp, size: 18, w: 600, ls: 5, c: COL.violet, a: ua * (1 - ap(s(4), 0, .5)) });
+    const lab = ev > .9 ? 'только излучение' : cf > .6 ? 'чёрные дыры' : 'галактики';
+    if (!banged && s3 < 0) T(c, lab, cx, cy + R0 + 36, { size: 20, w: 700, c: 'rgba(230,235,255,.85)', a: ua });
+    // clock & ruler
+    const ia = ap(s(2), .2, .8) * (1 - ap(s(3), 0, .6)), dis = ap(s(2), 1.4, 1.2);
+    drawClock(c, 1270, 270, 46, ia * (1 - dis * .7), t * (1 - dis)); drawRuler(c, 1270, 480, 170, ia * (1 - dis * .7));
+    cross(c, 1270, 270, 40, COL.red, ia * dis); cross(c, 1270, 480, 40, COL.red, ia * dis);
+    T(c, 'нет часов', 1270, 345, { size: 19, w: 700, c: COL.red, a: ia * dis }); T(c, 'нет линейки', 1270, 540, { size: 19, w: 700, c: COL.red, a: ia * dis });
+    T(c, 'какой я величины?', 330, 390, { size: 22, w: 700, c: 'rgba(230,235,255,.8)', a: ia * ap(s(2), 2, .8) });
+    const fa3 = ap(s3, .2, .8) * (1 - ap(s(4), 0, .6));
+    T(c, 'бесконечно большое', 250, 330, { f: F.disp, size: 20, w: 700, c: '#b9a2ff', a: fa3 });
+    T(c, 'и холодное', 250, 360, { f: F.disp, size: 20, w: 700, c: '#b9a2ff', a: fa3 });
+    T(c, '≡', 250, 408, { f: F.disp, size: 40, w: 700, a: fa3 * ap(s3, .8, .6) });
+    T(c, 'бесконечно малое', 250, 456, { f: F.disp, size: 20, w: 700, c: '#ffd08a', a: fa3 * ap(s3, 1.2, .6) });
+    T(c, 'и горячее', 250, 486, { f: F.disp, size: 20, w: 700, c: '#ffd08a', a: fa3 * ap(s3, 1.2, .6) });
+    // price panel
+    const pa2 = ap(s(4), .6, .9);
+    if (pa2 > 0) {
+      T(c, '≈ «серое стало единицей»', cx, cy + R0 + 44, { size: 22, w: 800, c: COL.gold, a: pa2 });
+      const px = 780; panel(c, px, 170, 700, 470, { a: pa2 });
+      T(c, 'ЦЕНА МОДЕЛИ', px + 40, 214, { al: 'left', f: F.disp, size: 20, w: 700, ls: 4, c: COL.pink, a: pa2 });
+      const rows = [['?', COL.gold, 'уничтожение информации в чёрных дырах', 'в это сейчас мало кто верит'], ['?', COL.gold, 'электроны должны со временем терять массу', 'нигде не наблюдалось'], ['✕', COL.red, 'кольца и «точки Хокинга» в реликтовом излучении', 'независимые проверки не подтвердили']];
+      rows.forEach((r, i) => { const ra = pa2 * ap(s(5), .2 + i * 2.6, .7), y = 290 + i * 118; c.save(); c.globalAlpha *= ra; c.beginPath(); c.arc(px + 64, y + 14, 26, 0, TAU); c.fillStyle = hexA(r[1], .15); c.fill(); c.strokeStyle = r[1]; c.lineWidth = 2; c.stroke(); c.restore(); T(c, r[0], px + 64, y + 15, { f: F.disp, size: 24, w: 800, c: r[1], a: ra }); T(c, r[2], px + 110, y + 2, { al: 'left', size: 21, w: 700, a: ra }); T(c, r[3], px + 110, y + 32, { al: 'left', size: 18, w: 500, c: 'rgba(220,230,255,.65)', a: ra }); });
+    }
+  }
+});
+
+/* ================= 12. ADD ZERO: Joule expansion, S_max ================= */
+scene({
+  id: 'zero', chapter: 'Путь 2. Добавить ноль', mood: 1,
+  beats: [
+    { t: 'Путь второй — действительно *добавить ноль*: расширить пространство возможностей.', d: 3.5 },
+    { t: '«Единица рядом с пустотой» — это расширение газа в вакуум, *опыт Джоуля*.', d: 5 },
+    { t: 'Главное: в момент, когда пристраивают пустоту, энтропия *не уменьшается* — она остаётся прежней. Растёт *потолок*: максимально возможная энтропия.', d: 5 },
+    { t: 'И у мира снова появляется, куда перемешиваться. Энтропия только растёт, но *зазор* до потолка открывается заново.', d: 6 },
+    { t: 'Это идея *Лейзера и Фраучи*: в расширяющейся Вселенной максимально возможная энтропия растёт быстрее фактической.', d: 6 },
+    { t: 'Поэтому «спираль» — точное слово: не круг с возвратом, а *суммарный рост при локальном обнулении*. Так же устроена циклическая модель *Стейнхардта — Турока*.', sfx: 'shimmer', d: 5 }
+  ],
+  init(S) {
+    const r = mulberry(71); S.x0 = 150; S.right = 450; S.ch = []; S.jumps = []; S.hist = []; S.ht = 0;
+    S.P = Array.from({ length: 260 }, () => { const a = r() * TAU, sp = 130 + r() * 70; return { x: 156 + r() * 288, y: 126 + r() * 198, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp }; });
+    S.Smax = Math.log(300 / 25); S.Sv = this.ent(S);
+  },
+  ent(S) { const nb = Math.round((S.right - S.x0) / 25), cnt = new Float32Array(nb); for (const p of S.P) cnt[clamp((p.x - S.x0) / 25 | 0, 0, nb - 1)]++; let h = 0; for (const q of cnt) if (q > 0) { const f = q / S.P.length; h -= f * Math.log(f); } return h; },
+  add(S, from, to) { S.ch.push({ from, to, t0: S.t, open: null }); AudioE.play('pop', { f: 260 }); },
+  update(dt, S) {
+    if (S.s(1) > .5 && once(S, 'a1')) this.add(S, 450, 750);
+    if (S.s(3) > .4 && once(S, 'a2')) this.add(S, 750, 1100);
+    if (S.s(4) > .6 && once(S, 'a3')) this.add(S, 1100, 1450);
+    for (const ch of S.ch) if (ch.open == null && S.t - ch.t0 > 1.3) { ch.open = S.t; const old = S.Smax; S.right = ch.to; S.Smax = Math.log((S.right - S.x0) / 25); S.jumps.push({ t: S.s(0), S: S.Sv, a: old, b: S.Smax }); AudioE.play('whoosh', { d: 1.1, v: .22 }); }
+    const L = S.x0 + 6, Rr = S.right - 6;
+    for (const p of S.P) { p.x += p.vx * dt; p.y += p.vy * dt; if (p.x < L) { p.x = L; p.vx = Math.abs(p.vx); } if (p.x > Rr) { p.x = Rr; p.vx = -Math.abs(p.vx); } if (p.y < 126) { p.y = 126; p.vy = Math.abs(p.vy); } if (p.y > 324) { p.y = 324; p.vy = -Math.abs(p.vy); } }
+    S.Sv = lerp(S.Sv, this.ent(S), .12);
+    if (S.beat >= 0) { S.ht += dt; if (S.ht > .08) { S.ht = 0; S.hist.push([S.s(0), S.Sv, S.Smax]); } }
+  },
+  draw(c, S) {
+    const s = k => S.s(k), a0 = ap(s(0), 0, .8), y0 = 120, hh = 210;
+    // container
+    c.save(); c.globalAlpha *= a0; rr(c, S.x0, y0, S.right - S.x0, hh, 16); c.fillStyle = 'rgba(79,209,255,.05)'; c.fill(); c.strokeStyle = 'rgba(200,215,255,.55)'; c.lineWidth = 2.5; c.stroke(); c.restore();
+    for (const ch of S.ch) {
+      const age = S.t - ch.t0, oa = ap(age, 0, .6) * (ch.open ? 1 - ap(S.t - ch.open, 1.5, 1) : 1);
+      if (oa > 0) { c.save(); c.globalAlpha *= a0 * oa; c.setLineDash([10, 8]); c.lineDashOffset = -S.t * 30; c.strokeStyle = COL.cyan; c.lineWidth = 2.5; rr(c, ch.from, y0, ch.to - ch.from, hh, 16); c.stroke(); c.restore(); T(c, '0', (ch.from + ch.to) / 2, y0 + hh / 2 + 4, { f: F.disp, size: 90, w: 900, c: 'rgba(0,0,0,0)', stroke: COL.cyan, sw: 2.5, a: a0 * oa * (ch.open ? 1 - ap(S.t - ch.open, 0, .6) : 1) }); }
+      const wa = ch.open ? 1 - ap(S.t - ch.open, 0, .5) : ap(age, 0, .3);
+      if (wa > 0) { const lift = ch.open ? eio(ap(S.t - ch.open, 0, .5)) * hh : 0; c.save(); c.beginPath(); c.rect(ch.from - 10, y0, 20, hh); c.clip(); c.globalAlpha *= a0 * wa; c.fillStyle = '#e8eeff'; c.shadowColor = '#fff'; c.shadowBlur = 12; c.fillRect(ch.from - 4, y0 - lift, 8, hh); c.restore(); }
+    }
+    c.save(); c.beginPath(); c.rect(S.x0, y0, S.right - S.x0, hh); c.clip(); c.globalCompositeOperation = 'lighter';
+    for (const p of S.P) glow(c, p.x, p.y, 9, COL.gold, .9 * a0); c.restore();
+    T(c, '1', 190, 96, { f: F.disp, size: 22, w: 900, c: COL.gold, a: a0 * (1 - ap(s(1), 1.5, .6)) });
+    // graph
+    const gx = 200, gy = 400, gw = 1200, gh = 280, tmax = Math.max(38, (S.hist.length ? S.hist[S.hist.length - 1][0] : 0) + 2);
+    const X = u => gx + u / tmax * gw, Y = v => gy + gh - (v - 2.2) / 2 * gh;
+    axes(c, gx, gy, gw, gh, { a: a0, xl: 'время', yl: '' });
+    if (S.hist.length > 1) {
+      c.save(); c.globalAlpha *= a0 * .16; c.beginPath(); S.hist.forEach((h, i) => i ? c.lineTo(X(h[0]), Y(h[2])) : c.moveTo(X(h[0]), Y(h[2]))); for (let i = S.hist.length - 1; i >= 0; i--) c.lineTo(X(S.hist[i][0]), Y(S.hist[i][1])); c.closePath(); c.fillStyle = COL.gold; c.fill(); c.restore();
+      poly(c, S.hist.map(h => [X(h[0]), Y(h[2])]), COL.gold, 3, a0, { dash: [10, 7], glow: 'rgba(255,181,71,.7)' });
+      poly(c, S.hist.map(h => [X(h[0]), Y(h[1])]), COL.cyan, 4, a0, { glow: 'rgba(79,209,255,.8)' });
+      const last = S.hist[S.hist.length - 1];
+      T(c, 'S max — потолок', X(last[0]) + 14, Y(last[2]) - 4, { al: 'left', size: 17, w: 800, c: COL.gold, a: a0 });
+      T(c, 'S', X(last[0]) + 14, Y(last[1]) + 16, { al: 'left', size: 17, w: 800, c: COL.cyan, a: a0 });
+    }
+    const j = S.jumps[0], ja = ap(s(2), .3, .8) * (1 - ap(s(3), 1.5, .6));
+    if (j && ja > 0) {
+      const x = X(j.t); arrow(c, x - 150, Y(j.S) + 80, x - 8, Y(j.S) + 6, { c: COL.cyan, w: 2.5, a: ja }); T(c, 'S — прежняя', x - 160, Y(j.S) + 96, { al: 'right', size: 19, w: 800, c: COL.cyan, a: ja });
+      arrow(c, x - 150, Y(j.b) - 40, x - 8, Y(j.b) - 4, { c: COL.gold, w: 2.5, a: ja * ap(s(2), 1.5, .8) }); T(c, 'потолок подскочил', x - 160, Y(j.b) - 50, { al: 'right', size: 19, w: 800, c: COL.gold, a: ja * ap(s(2), 1.5, .8) });
+    }
+    const last = S.hist[S.hist.length - 1];
+    if (last) { const ga = ap(s(3), 1.4, .8) * (1 - ap(s(4), 0, .5)); T(c, '↕ зазор', X(last[0]) - 30, (Y(last[1]) + Y(last[2])) / 2, { al: 'right', size: 19, w: 800, c: COL.white, a: ga }); }
+    pill(c, 'Лейзер и Фраучи: S max растёт быстрее S', gx + 20, gy - 14, { al: 'left', c: COL.gold, size: 18, a: ap(s(4), .5, .8) * (1 - ap(s(5), 0, .5)) });
+    pill(c, 'суммарный рост при локальном обнулении', gx + 20, gy - 14, { al: 'left', c: COL.cyan, size: 18, a: ap(s(5), .5, .8), glow: 1 });
+    pill(c, 'Стейнхардт — Турок', gx + 520, gy - 14, { al: 'left', c: COL.violet, size: 18, a: ap(s(5), 2.8, .8) });
+  }
+});
+
+/* ================= 13. LADDER OF LEVELS ================= */
+const LX = 700, LA = 360, LB = 85, LY = 560;
+const iso = (u, v, h) => [LX + (u - v) * LA, LY - h + (u + v - 1) * LB];
+function floorPath(c, h) { const p = [iso(0, 0, h), iso(1, 0, h), iso(1, 1, h), iso(0, 1, h)]; c.beginPath(); c.moveTo(p[0][0], p[0][1]); for (let i = 1; i < 4; i++) c.lineTo(p[i][0], p[i][1]); c.closePath(); }
+function floorPlane(c, h, a, c0, c1, smooth2) {
+  if (a <= .003) return; c.save(); c.globalAlpha *= a; floorPath(c, h);
+  const g = c.createLinearGradient(LX - LA, 0, LX + LA, 0); g.addColorStop(0, c0); g.addColorStop(1, c1); c.fillStyle = g; c.fill();
+  c.strokeStyle = 'rgba(200,215,255,.45)'; c.lineWidth = 1.5; c.stroke();
+  c.clip(); c.strokeStyle = 'rgba(200,215,255,.08)'; c.lineWidth = 1;
+  for (let k = 1; k < 8; k++) { const a1 = iso(k / 8, 0, h), b1 = iso(k / 8, 1, h), a2 = iso(0, k / 8, h), b2 = iso(1, k / 8, h); c.beginPath(); c.moveTo(a1[0], a1[1]); c.lineTo(b1[0], b1[1]); c.moveTo(a2[0], a2[1]); c.lineTo(b2[0], b2[1]); c.stroke(); }
+  if (smooth2) { c.globalCompositeOperation = 'lighter'; const m = iso(.5, .5, h); glow(c, m[0], m[1], 330, smooth2, .35); }
+  c.restore();
+}
+function drawFridge(c, x, y, a, t) {
+  if (a <= .003) return; c.save(); c.globalAlpha *= a;
+  rr(c, x, y, 130, 230, 14); c.fillStyle = 'rgba(220,235,255,.1)'; c.fill(); c.strokeStyle = '#dfe8ff'; c.lineWidth = 3; c.stroke();
+  c.beginPath(); c.moveTo(x, y + 80); c.lineTo(x + 130, y + 80); c.stroke(); c.lineWidth = 5; c.lineCap = 'round'; c.beginPath(); c.moveTo(x + 112, y + 26); c.lineTo(x + 112, y + 56); c.moveTo(x + 112, y + 104); c.lineTo(x + 112, y + 150); c.stroke();
+  c.restore();
+  T(c, '❄', x + 60, y + 160, { size: 54, c: COL.cyan, a, glow: 'rgba(79,209,255,.8)' });
+  for (let k = 0; k < 3; k++) { const yy = y + 50 + k * 60; c.save(); c.globalAlpha *= a; c.strokeStyle = COL.amber; c.lineWidth = 3; c.beginPath(); for (let q = 0; q <= 20; q++) { const xx = x + 145 + q * 4, w = Math.sin(q * .9 - t * 6 + k) * 6; q ? c.lineTo(xx, yy + w) : c.moveTo(xx, yy + w); } c.stroke(); c.restore(); arrow(c, x + 225, yy, x + 245, yy, { c: COL.amber, w: 3, head: 10, a }); }
+  T(c, 'внутри S ↓', x + 65, y + 262, { size: 18, w: 800, c: COL.cyan, a }); T(c, 'снаружи S ↑↑', x + 200, y + 262, { size: 18, w: 800, c: COL.amber, a });
+}
+scene({
+  id: 'ladder', chapter: 'Путь 3. Лестница уровней', mood: 3,
+  beats: [
+    { t: 'Путь третий — без новой физики. Локально уменьшать энтропию можно: холодильник охлаждает камеру, но выбрасывает наружу ещё больше тепла.', d: 5 },
+    { t: 'Так и здесь: различия не стираются, а *отключаются*. Есть аппарат смены уровня описания — *огрубление и ренормгруппа*: мелкое усредняется, и равновесие нижнего этажа становится гладким фоном для верхнего.', sfx: 'whoosh', d: 6 },
+    { t: 'Возможно, наш *вакуум* — как раз такое «серое, ставшее единицей»: внутри кипят флуктуации, а для частиц это просто пустота.', d: 5 },
+    { t: 'Почти вся энтропия Вселенной, если не считать чёрных дыр, сидит в *реликтовых фотонах и нейтрино*. Галактики их почти не чувствуют.', d: 5.5 },
+    { t: 'Условие одно: серое должно быть *холодным* для нового уровня — иначе оно просочится наверх шумом. А расширение как раз всё время охлаждает фон.', sfx: 'freeze', d: 5.5 },
+    { t: 'Спираль становится *лестницей уровней*. Полная энтропия не сбрасывается — она уходит на нижние этажи.', sfx: 'shimmer', d: 5 }
+  ],
+  init(S) {
+    const r = mulberry(33);
+    S.A = Array.from({ length: 460 }, () => ({ u: r(), v: r(), p: r() * TAU }));
+    S.B = Array.from({ length: 110 }, () => ({ u: r(), v: r(), a: r() * TAU, k: r() < .6 ? 0 : 1, p: r() * TAU }));
+    S.C = Array.from({ length: 5 }, (_, i) => ({ u: .15 + (i % 3) * .33 + r() * .08, v: .2 + (i / 3 | 0) * .45 + r() * .1, rot: r() * TAU, d: Array.from({ length: 34 }, () => { const rd = Math.pow(r(), .7) * .09, arm = r() < .5 ? 0 : Math.PI; return { r: rd, th: arm + rd * 34 + (r() - .5) * .5 }; }) }));
+  },
+  update(dt, S) { for (const p of S.B) { p.u = (p.u + Math.cos(p.a) * .05 * dt + 1) % 1; p.v = (p.v + Math.sin(p.a) * .05 * dt + 1) % 1; } },
+  draw(c, S) {
+    const s = k => S.s(k), t = S.t, a0 = ap(s(0), 0, .8);
+    drawFridge(c, 90, 250, ap(s(0), .4, .8) * (1 - ap(s(1), 1, .8)), t);
+    // floor A: vacuum
+    const aFine = a0 * (1 - ap(s(1), 1.2, 1.6)), aSm = ap(s(1), 1.2, 1.6);
+    floorPlane(c, 0, a0 * .9, 'rgba(255,110,60,.10)', 'rgba(255,60,120,.10)', aSm > 0 ? null : null);
+    floorPlane(c, 0, aSm, 'rgba(180,120,110,.35)', 'rgba(150,110,140,.35)', '#ff8a6a');
+    if (aFine > 0) { c.save(); c.globalCompositeOperation = 'lighter'; for (const p of S.A) { const q = iso(p.u, p.v, 0); glow(c, q[0] + Math.sin(t * 23 + p.p * 7) * 5, q[1] + Math.cos(t * 19 + p.p * 5) * 3, 6, Math.sin(p.p) > 0 ? COL.amber : COL.pink, aFine * .8); } c.restore(); }
+    // floor B: particles & radiation
+    const bIn = ap(s(1), 2, 1.4), hB = 200 - 40 * (1 - bIn), bFine = bIn * (1 - ap(s(3), .3, 1.5)), bSm = ap(s(3), .3, 1.5), cold = ap(s(4), .6, 3);
+    floorPlane(c, hB, bIn * .9, 'rgba(79,209,255,.08)', 'rgba(160,123,255,.08)');
+    floorPlane(c, hB, bSm, mixC('#b99a7c', '#5f79b8', cold).replace('rgb', 'rgba').replace(')', ',.4)'), mixC('#a58a9a', '#6a70c0', cold).replace('rgb', 'rgba').replace(')', ',.4)'), cold > .5 ? COL.cyan : COL.amber);
+    if (bFine > 0) { c.save(); c.globalAlpha *= bFine; c.strokeStyle = 'rgba(170,230,255,.9)'; c.lineWidth = 1.6; for (const p of S.B) { const q = iso(p.u, p.v, hB); if (p.k) { c.globalCompositeOperation = 'lighter'; glow(c, q[0], q[1], 6, COL.violet, .8); c.globalCompositeOperation = 'source-over'; continue; } c.beginPath(); for (let k = 0; k <= 8; k++) { const x = q[0] + Math.cos(p.a) * (k * 2.5 - 10), y = q[1] + Math.sin(p.a) * (k * 1.2 - 5) + Math.sin(k + t * 10 + p.p) * 2; k ? c.lineTo(x, y) : c.moveTo(x, y); } c.stroke(); } c.restore(); }
+    // floor C: galaxies
+    const cIn = ap(s(3), .8, 1.4), hC = 400 - 40 * (1 - cIn);
+    floorPlane(c, hC, cIn * .9, 'rgba(255,181,71,.08)', 'rgba(255,79,154,.07)');
+    if (cIn > 0) { c.save(); c.globalCompositeOperation = 'lighter'; for (const G of S.C) { const m = iso(G.u, G.v, hC); for (const d of G.d) { const a = d.th + G.rot + t * .5; glow(c, m[0] + Math.cos(a) * d.r * 420, m[1] + Math.sin(a) * d.r * 150, 6, COL.gold, cIn * .8); } glow(c, m[0], m[1], 14, COL.white, cIn); } c.restore(); }
+    // coarse-graining arrow
+    const ca = ap(s(1), 1, .8) * (1 - ap(s(3), 1.5, .6));
+    arrow(c, 250, 560, 250, 390, { c: COL.white, w: 3, head: 14, a: ca }); T(c, 'усреднение', 262, 470, { al: 'left', size: 17, w: 700, c: 'rgba(230,235,255,.8)', a: ca });
+    // labels
+    const lx = 1105;
+    T(c, 'ВАКУУМ', lx, 548, { al: 'left', f: F.disp, size: 16, w: 700, ls: 3, c: COL.amber, a: a0 });
+    T(c, 'внутри кипят флуктуации', lx, 576, { al: 'left', size: 17, w: 600, c: 'rgba(230,235,255,.75)', a: ap(s(2), .3, .8) });
+    T(c, bSm > .5 ? 'ФОН' : 'ЧАСТИЦЫ И ИЗЛУЧЕНИЕ', lx, 348, { al: 'left', f: F.disp, size: 16, w: 700, ls: 3, c: COL.cyan, a: bIn });
+    T(c, bSm > .5 ? 'фотоны и нейтрино: почти вся энтропия' : 'для частиц вакуум — просто пустота', lx, 376, { al: 'left', size: 17, w: 600, c: 'rgba(230,235,255,.75)', a: bIn * ap(s(2), .8, .8) });
+    T(c, 'ГАЛАКТИКИ', lx, 148, { al: 'left', f: F.disp, size: 16, w: 700, ls: 3, c: COL.gold, a: cIn });
+    T(c, 'фон почти не чувствуют', lx, 176, { al: 'left', size: 17, w: 600, c: 'rgba(230,235,255,.75)', a: cIn * ap(s(3), 1.8, .8) });
+    // entropy budget
+    const ea = ap(s(3), 1.2, .8) * (1 - ap(s(4), 0, .5));
+    if (ea > 0) { T(c, 'где энтропия (без чёрных дыр)', 70, 250, { al: 'left', size: 16, w: 800, c: 'rgba(230,235,255,.8)', a: ea }); meter(c, 70, 300, 250, 1, { a: ea, label: 'фотоны и нейтрино', c0: COL.cyan, c1: COL.violet }); meter(c, 70, 370, 250, .01, { a: ea, label: 'звёзды, газ, остальное', c0: COL.gold, c1: COL.gold }); }
+    // thermometer
+    const ta = ap(s(4), .2, .8) * (1 - ap(s(5), 0, .6));
+    if (ta > 0) {
+      const lvl = 1 - cold * .9; c.save(); c.globalAlpha *= ta; rr(c, 150, 230, 26, 230, 13); c.strokeStyle = '#e6ebff'; c.lineWidth = 3; c.stroke(); c.beginPath(); c.arc(163, 478, 22, 0, TAU); c.fillStyle = mixC(COL.amber, COL.cyan, cold); c.fill(); c.stroke();
+      rr(c, 157, 236 + 218 * (1 - lvl), 12, 218 * lvl + 20, 6); c.fill(); c.restore();
+      T(c, cold < .5 ? '3000 K' : '2,7 K', 200, 250 + 190 * (1 - lvl), { al: 'left', f: F.mono, size: 22, w: 600, c: mixC(COL.amber, COL.cyan, cold), a: ta });
+      T(c, 'фон остывает', 110, 530, { al: 'left', size: 18, w: 800, c: COL.cyan, a: ta });
+    }
+    // downward entropy flow
+    const da = ap(s(5), .3, .8);
+    if (da > 0) {
+      for (let k = 0; k < 3; k++) { const x = 420 + k * 280, ph = (t * .6 + k * .33) % 1; arrow(c, x, 180 + ph * 60, x, 300 + ph * 60, { c: COL.pink, w: 3, head: 12, a: da * (1 - ph) }); arrow(c, x + 60, 380 + ph * 60, x + 60, 500 + ph * 60, { c: COL.pink, w: 3, head: 12, a: da * (1 - ph) }); }
+      pill(c, 'энтропия уходит на нижние этажи', 700, 90, { c: COL.pink, size: 20, a: da, glow: 1 });
+    }
+  }
+});
+
+/* ================= 14. FOUR ANSWERS ================= */
+function answerCard(c, x, y, w, h, num, title, sub, act, col, a) {
+  if (a <= .003) return; const k = act ? 1 : .45;
+  panel(c, x, y, w, h, { a, stroke: act ? hexA(col, .9) : 'rgba(170,190,255,.16)', glow: act ? hexA(col, .6) : null, lw: act ? 2 : 1.3 });
+  T(c, num, x + 22, y + 34, { al: 'left', f: F.disp, size: 28, w: 800, c: col, a: a * k });
+  T(c, title, x + 64, y + 36, { al: 'left', size: 21, w: 800, a: a * k });
+  wrap(c, sub, x + 22, y + 82, w - 40, 22, { size: 15.5, w: 600, c: 'rgba(220,230,255,.7)', a: a * k });
+}
+scene({
+  id: 'answers', chapter: 'Четыре ответа', mood: 4,
+  beats: [
+    { t: 'Как вообще обсуждают эту загадку? Консенсуса нет — проблема открыта. Основных ходов *четыре*.', d: 4 },
+    { t: 'Первый: принять низкую энтропию как *граничное условие* без объяснения. Непротиворечиво — но многим кажется нечестным.', sfx: 'blip' },
+    { t: 'Второй: *точка Януса*. Джулиан Барбур, 2020; близкая идея — у Кэрролла и Чена, 2004. Минимум не в начале, а *посередине*.', v: 'Второй: точка Януса. Джулиан Барбур; близкая идея — у Кэрролла и Чена. Минимум не в начале, а посередине.', sfx: 'blip', d: 5 },
+    { t: 'Энтропия и сложность растут *в обе стороны*. Наблюдатели с каждой стороны называют «прошлым» направление к минимуму — и никто никогда не видит убывания.', d: 6 },
+    { t: 'К минимуму ничего не убывало — от него растёт в обе стороны. И у Барбура точка Януса — ещё и *самое однородное* состояние.', sfx: 'shimmer' },
+    { t: 'Третий: случайная *флуктуация по Больцману*. Но маленькая флуктуация — одинокий «больцмановский мозг» в пустоте — несравнимо вероятнее целой Вселенной. Этот вариант почти все отвергают.', sfx: 'blip', d: 6 },
+    { t: 'Четвёртый: *циклы со сбросом* — Пенроуз, Стейнхардт и Турок.', sfx: 'blip', d: 5 }
+  ],
+  init(S) { const r = mulberry(9); S.noise = Array.from({ length: 300 }, (_, i) => { let v = .93 - Math.abs(gauss(r)) * .03; v -= .12 * Math.exp(-Math.pow((i - 80) / 3, 2)); v -= .8 * Math.exp(-Math.pow((i - 230) / 7, 2)); return v; }); },
+  draw(c, S) {
+    const s = k => S.s(k), t = S.t;
+    const act = S.beat >= 6 ? 3 : S.beat === 5 ? 2 : S.beat >= 2 ? 1 : S.beat === 1 ? 0 : -1;
+    const cards = [['1', 'Граничное условие', 'просто принять начальный минимум', COL.gold], ['2', 'Точка Януса', 'Барбур · Кэрролл и Чен', COL.cyan], ['3', 'Флуктуация', 'Больцман · «больцмановские мозги»', COL.pink], ['4', 'Циклы со сбросом', 'Пенроуз · Стейнхардт — Турок', COL.violet]];
+    cards.forEach((cd, i) => answerCard(c, 110 + i * 350, 90, 330, 150, cd[0], cd[1], cd[2], act === i, cd[3], ap(s(0), .3 + i * .35, .7)));
+    if (S.beat >= 5 || s(5) >= 0) pill(c, 'почти все отвергают', 110 + 2 * 350 + 165, 262, { c: COL.red, size: 15, a: ap(s(5), 4, .6) });
+    const area = (i, from, to) => ap(s(from), .2, .8) * (to < 0 ? 1 : 1 - ap(s(to), 0, .5));
+    // 1: boundary condition
+    const a1 = area(1, 1, 2);
+    if (a1 > 0) {
+      axes(c, 250, 320, 1100, 340, { a: a1, xl: 'время', yl: 'S' });
+      const pts = []; for (let i = 0; i <= 100; i++) { const u = i / 100 * ap(s(1), .4, 2); pts.push([250 + u * 1100, 660 - (.05 + .85 * Math.pow(u, .7)) * 340]); } poly(c, pts, COL.gold, 4, a1, { glow: 'rgba(255,181,71,.8)' });
+      c.globalCompositeOperation = 'lighter'; glow(c, 254, 643, 50, COL.gold, a1); c.globalCompositeOperation = 'source-over';
+      pill(c, '🔒  дано: S в начале мала', 280, 590, { al: 'left', c: COL.gold, size: 18, a: a1 * ap(s(1), 1, .7) });
+      T(c, 'а почему — не объясняется', 300, 540, { al: 'left', size: 19, w: 600, c: 'rgba(220,230,255,.7)', a: a1 * ap(s(1), 2.2, .7) });
+    }
+    // 2: Janus point
+    const a2 = area(2, 2, 5);
+    if (a2 > 0) {
+      const cx = 800, Y = x => 660 - (.1 + .8 * Math.pow(Math.abs(x - cx) / 620, .85)) * 330, grow = ap(s(2), .6, 2.2);
+      const L = [], Rr = []; for (let i = 0; i <= 80; i++) { const d = i / 80 * 620 * grow; L.push([cx - d, Y(cx - d)]); Rr.push([cx + d, Y(cx + d)]); }
+      poly(c, L, COL.cyan, 4, a2, { glow: 'rgba(79,209,255,.8)' }); poly(c, Rr, COL.cyan, 4, a2, { glow: 'rgba(79,209,255,.8)' });
+      c.globalCompositeOperation = 'lighter'; glow(c, cx, Y(cx), 60 + 6 * Math.sin(t * 3), COL.white, a2 * .9);
+      const ga = a2 * ap(s(3), 0, 1); for (let k = 1; k <= 5; k++) for (const sgn of [-1, 1]) { const x = cx + sgn * k * 115, y = Y(x) - 40; for (let q = 0; q < k * 5; q++) { const an = q * 2.4 + t * .8, rd = 3 + q * 1.6; glow(c, x + Math.cos(an) * rd, y + Math.sin(an) * rd * .6, 5, COL.gold, ga * .8); } }
+      c.globalCompositeOperation = 'source-over';
+      T(c, 'точка Януса', cx, Y(cx) + 36, { size: 20, w: 800, c: COL.white, a: a2 });
+      T(c, 'минимум S · максимальная однородность', cx, Y(cx) + 62, { size: 16, w: 600, c: 'rgba(220,230,255,.7)', a: a2 * ap(s(4), .5, .8) });
+      const ta = a2 * ap(s(3), .5, .8);
+      arrow(c, cx + 40, 300, cx + 560, 300, { c: COL.gold, w: 3, head: 16, a: ta }); arrow(c, cx - 40, 300, cx - 560, 300, { c: COL.gold, w: 3, head: 16, a: ta });
+      T(c, 'стрела времени →', cx + 300, 278, { size: 17, w: 700, c: COL.gold, a: ta }); T(c, '← стрела времени', cx - 300, 278, { size: 17, w: 700, c: COL.gold, a: ta });
+      for (const sgn of [-1, 1]) { const ox = cx + sgn * 420, oy = Y(ox) - 90, oa = a2 * ap(s(3), 1.5, .8); T(c, '👁', ox, oy, { size: 30, a: oa }); arrow(c, ox - sgn * 22, oy + 30, ox - sgn * 110, oy + 30, { c: COL.pink, w: 2.5, head: 10, a: oa }); T(c, '«прошлое»', ox - sgn * 66, oy + 54, { size: 15, w: 700, c: COL.pink, a: oa }); }
+    }
+    // 3: Boltzmann fluctuation
+    const a3 = area(3, 5, 6);
+    if (a3 > 0) {
+      const x0 = 200, w = 1200, prog = ap(s(5), .3, 3), pts = []; for (let i = 0; i < S.noise.length * prog; i++) pts.push([x0 + i / 300 * w, 660 - S.noise[i] * 340]);
+      axes(c, x0, 320, w, 340, { a: a3, xl: 'вечность', yl: 'S' }); poly(c, pts, COL.pink, 2.5, a3, { glow: 'rgba(255,79,154,.6)' });
+      T(c, '🧠', x0 + 80 / 300 * w, 660 - .79 * 340 + 40, { size: 30, a: a3 * ap(s(5), 1.4, .6) }); T(c, 'маленькая флуктуация: часто', x0 + 80 / 300 * w, 660 - .79 * 340 + 80, { size: 16, w: 700, c: COL.pink, a: a3 * ap(s(5), 1.6, .6) });
+      T(c, 'целая Вселенная: несравнимо реже', x0 + 230 / 300 * w, 660 - .1 * 340 + 26, { size: 16, w: 700, c: COL.white, a: a3 * ap(s(5), 2.6, .6) });
+    }
+    // 4: cycles with reset
+    const a4 = area(4, 6, -1);
+    if (a4 > 0) {
+      const x0 = 200, w = 1200, prog = ap(s(6), .2, 3); axes(c, x0, 320, w, 340, { a: a4, xl: 'циклы', yl: 'S' });
+      const tot = [], loc = []; for (let i = 0; i <= 200 * prog; i++) { const u = i / 200, cyc = u * 4, f = cyc % 1; tot.push([x0 + u * w, 660 - (.12 + .2 * cyc + .12 * f) * 280 * .55 - 20]); loc.push([x0 + u * w, 660 - (.08 + .78 * Math.pow(f, .6)) * 300]); }
+      poly(c, tot, COL.gold, 3, a4, { dash: [10, 7] }); poly(c, loc, COL.violet, 3.5, a4, { glow: 'rgba(160,123,255,.8)' });
+      T(c, 'полная энтропия растёт', x0 + w - 10, 400, { al: 'right', size: 17, w: 800, c: COL.gold, a: a4 * ap(s(6), 2, .6) });
+      T(c, 'видимая область стартует почти чистой', x0 + 20, 330, { al: 'left', size: 17, w: 800, c: COL.violet, a: a4 * ap(s(6), 1.2, .6) });
+    }
+  }
+});
+
+/* ================= 15. FINALE ================= */
+function card2(c, x, y, w, h, tag, title, body, col, a) {
+  if (a <= .003) return; panel(c, x, y, w, h, { a, stroke: hexA(col, .8), glow: hexA(col, .45), lw: 2, f0: 'rgba(10,12,30,.82)', f1: 'rgba(10,12,30,.7)' });
+  T(c, tag, x + 36, y + 46, { al: 'left', f: F.disp, size: 15, w: 700, ls: 4, c: col, a });
+  T(c, title, x + 36, y + 100, { al: 'left', f: F.disp, size: 30, w: 800, a });
+  wrap(c, body, x + 36, y + 160, w - 72, 34, { size: 23, w: 600, c: 'rgba(225,232,255,.85)', a });
+}
+scene({
+  id: 'finale', chapter: 'Итог', mood: 0, tail: 1.2,
+  beats: [
+    { t: 'Итак. Идея «единицы и нуля» — не наивная. Она из той же семьи, что модели *Пенроуза и Барбура*.', sfx: 'shimmer', d: 5 },
+    { t: 'Самое слабое её звено — «перемешанное серое = единица». Такая единица не отменяет рост полной энтропии, а *прячет* его.', d: 5.5 },
+    { t: 'Самое сильное — «*добавить ноль*». Если пространство возможностей может расти, спирали не нужно нарушать второй закон.', d: 6 },
+    { t: 'А откуда взялся самый первый минимум — пока не знает никто. Возможно, ответ начнётся с такого же вопроса.', d: 6.5, sfx: 'boom' }
+  ],
+  init(S) { introParticles(); },
+  draw(c, S) {
+    const s = k => S.s(k), t = S.t, P = introParticles(), bright = .35 + .65 * ap(s(3), .5, 2);
+    c.save(); c.globalCompositeOperation = 'lighter'; glow(c, 800, 390, 320, COL.violet, .25 * bright); glow(c, 800, 390, 120, COL.gold, .45 * bright);
+    for (const p of P) { const q = spiralXY(p, t + 40, 800, 390, .48); glow(c, q[0], q[1], p.sz, spiralCol(p), (.25 + .3 * Math.sin(t * 2 + p.tw) * .5 + .15) * bright); }
+    c.restore();
+    const a0 = ap(s(0), .2, 1) * (1 - ap(s(1), 0, .6));
+    T(c, 'Идея — из той же семьи,', 800, 350, { f: F.disp, size: 44, w: 700, a: a0 });
+    T(c, 'что у Пенроуза и Барбура', 800, 420, { f: F.disp, size: 44, w: 700, a: a0 * ap(s(0), .8, .8), grad: [COL.gold, COL.cyan] });
+    const ca = 1 - ap(s(3), 0, .8);
+    card2(c, 150, 230, 610, 290, 'СЛАБОЕ ЗВЕНО', '«серое = единица»', 'Такая единица не отменяет рост полной энтропии — она прячет его на нижних этажах.', COL.pink, ap(s(1), .2, .8) * ca);
+    card2(c, 840, 230, 610, 290, 'СИЛЬНОЕ ЗВЕНО', '«добавить ноль»', 'Если пространство возможностей растёт, спирали не нужно нарушать второй закон.', COL.gold, ap(s(2), .2, .8) * ca);
+    const qa = ap(s(3), .6, 1.2);
+    T(c, 'Откуда взялся первый минимум?', 800, 655, { f: F.disp, size: 30, w: 700, a: qa, glow: 'rgba(160,123,255,.7)', blur: 24 });
+  }
+});
+</script>
+<script>
+'use strict';
+/* =====================================================================
+   ENGINE: timeline, beats, transitions, rendering
+   ===================================================================== */
+const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
+let vw = 0, vh = 0, dpr = 1, scl = 1, ox = 0, oy = 0, frameNo = 0;
+function resize() {
+  dpr = Math.min(2, window.devicePixelRatio || 1); vw = innerWidth; vh = innerHeight;
+  cv.width = Math.round(vw * dpr); cv.height = Math.round(vh * dpr);
+  scl = Math.min(vw / W, vh / H); ox = (vw - W * scl) / 2; oy = (vh - H * scl) / 2;
+  if (vh / vw > H / W * 1.2) oy = Math.max(12, oy - vh * .07); // portrait: lift stage, captions go below
+}
+addEventListener('resize', resize); resize();
+
+const E = { i: 0, S: null, playing: false, started: false, trans: null, fade: 0, ended: false, clock: 0 };
+const readT = t => clamp(t.length / 16 + 1.2, 2.6, 16);
+const estScene = sc => (sc.lead ?? (sc.chapter ? 2.9 : .6)) + sc.beats.reduce((s, b) => s + Math.max(b.d || 0, b.t ? readT(b.t) : 0), 0) + (sc.tail ?? .9) + 1.5;
+function mkS(sc) { const S = { t: 0, beat: -1, bt: 0, bs: [], lead: sc.lead ?? (sc.chapter ? 2.9 : .6) }; S.s = k => S.beat >= k ? S.t - S.bs[k] : -1; return S; }
+function enterScene(i) {
+  E.i = i; const sc = SCENES[i]; E.S = mkS(sc); E.ended = false;
+  try { sc.init && sc.init(E.S); } catch (e) { console.error(e); }
+  Cap.hide(); UI.scene(i); UI.end(false);
+  if (sc.chapter && E.started) UI.chapter(i);
+  AudioE.setMood(sc.mood ?? i);
+}
+function nextBeat() {
+  const sc = SCENES[E.i], S = E.S; S.beat++; S.bs[S.beat] = S.t; S.bt = 0;
+  const b = sc.beats[S.beat];
+  if (!b) { Cap.hide(); return; }
+  if (b.t) { Cap.show(b.t); Voice.say(b.v || b.t); } else Cap.hide();
+  if (b.sfx) AudioE.play(b.sfx);
+  try { sc.onBeat && sc.onBeat(S.beat, S); } catch (e) { console.error(e); }
+}
+function beatReady(b, S) {
+  const need = b.d || 0; if (!b.t) return S.bt >= need;
+  if (Voice.active()) return S.bt >= Math.max(need, 1.2) && Voice.finished();
+  return S.bt >= Math.max(need, readT(b.t));
+}
+function advance(dt) {
+  const tr = E.trans;
+  if (tr && tr.ph === 'out') {
+    tr.t += dt; E.fade = clamp(tr.t / tr.d); const sc = SCENES[E.i]; E.S.t += dt;
+    try { sc.update && sc.update(dt, E.S); } catch (e) { console.error(e); }
+    if (tr.t >= tr.d) { enterScene(tr.to); tr.ph = 'in'; tr.t = 0; }
+    return;
+  }
+  if (tr && tr.ph === 'in') { tr.t += dt; E.fade = 1 - clamp(tr.t / .9); if (tr.t >= .9) { E.trans = null; E.fade = 0; } }
+  const sc = SCENES[E.i], S = E.S; S.t += dt; S.bt += dt;
+  try { sc.update && sc.update(dt, S); } catch (e) { console.error(e); }
+  if (S.beat === -1) { if (S.bt >= S.lead) nextBeat(); return; }
+  if (S.beat >= sc.beats.length) { if (!E.ended && S.bt >= (sc.tail ?? .9)) goNext(); return; }
+  if (beatReady(sc.beats[S.beat], S)) nextBeat();
+}
+function goNext() { if (E.i < SCENES.length - 1) jump(E.i + 1); else { E.ended = true; UI.end(true); Cap.hide(); } }
+function jump(i, d = .75) {
+  if (i < 0 || i >= SCENES.length) return;
+  Voice.cancel(); Cap.hide(); E.trans = { ph: 'out', t: 0, d, to: i }; AudioE.play('whoosh', { v: .2 });
+  if (!E.playing) setPlaying(true);
+}
+function setPlaying(p) {
+  E.playing = p; UI.playState(p);
+  if (p) { AudioE.resume(); const S = E.S, b = SCENES[E.i].beats[S.beat]; if (b && b.t && S.beat >= 0) { S.bt = Math.min(S.bt, .3); Voice.say(b.v || b.t); } }
+  else { Voice.cancel(); AudioE.suspend(); }
+}
+function render() {
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
+  drawBG(ctx, vw, vh, E.clock);
+  const sc = SCENES[E.i], S = E.S;
+  ctx.setTransform(dpr * scl, 0, 0, dpr * scl, dpr * ox, dpr * oy);
+  ctx.save();
+  ctx.globalAlpha = sc.chapter && E.started ? .12 + .88 * ap(S.t, S.lead - 1, 1.2) : 1;
+  try { sc.draw(ctx, S); } catch (e) { if (!render.err) { console.error(e); render.err = 1; } }
+  ctx.restore(); ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  if (E.fade > 0) { ctx.fillStyle = `rgba(3,4,10,${E.fade})`; ctx.fillRect(0, 0, vw, vh); }
+  const g = ctx.createRadialGradient(vw / 2, vh / 2, Math.min(vw, vh) * .32, vw / 2, vh / 2, Math.hypot(vw, vh) * .62);
+  g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, 'rgba(0,0,0,.5)'); ctx.fillStyle = g; ctx.fillRect(0, 0, vw, vh);
+  ctx.save(); ctx.globalAlpha = .045; ctx.globalCompositeOperation = 'overlay'; ctx.fillStyle = ctx.createPattern(GRAIN[frameNo % 4], 'repeat');
+  ctx.translate((Math.random() * 128) | 0, (Math.random() * 128) | 0); ctx.fillRect(-128, -128, vw + 256, vh + 256); ctx.restore();
+}
+let last = performance.now();
+function frame(now) {
+  let dt = (now - last) / 1000; last = now; if (dt > .1) dt = .1; if (dt < 0) dt = 0; frameNo++;
+  if (!E.started) { E.clock += dt; const sc = SCENES[0]; E.S.t += dt; try { sc.update && sc.update(dt, E.S); } catch (e) { } }
+  else if (E.playing) { E.clock += dt; advance(dt); }
+  render(); UI.tick();
+  requestAnimationFrame(frame);
+}
+
+/* =====================================================================
+   CAPTIONS
+   ===================================================================== */
+const Cap = {
+  el: document.getElementById('cap'), on: true, tok: 0,
+  esc: s => s.replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m])),
+  html(t) {
+    let out = '', i = 0;
+    t.split('*').forEach((seg, k) => seg.split(/(\s+)/).forEach(w => { if (!w) return; if (/^\s+$/.test(w)) { out += ' '; return; } out += `<span class="w${k % 2 ? ' em' : ''}" style="animation-delay:${(i++ * .032).toFixed(3)}s">${this.esc(w)}</span>`; }));
+    return out;
+  },
+  show(t) {
+    const tok = ++this.tok; this.last = t; if (!this.on) return;
+    if (this.el.innerHTML) { this.el.classList.add('out'); setTimeout(() => { if (tok !== this.tok) return; this.el.innerHTML = this.html(t); this.el.classList.remove('out'); }, 220); }
+    else { this.el.innerHTML = this.html(t); this.el.classList.remove('out'); }
+  },
+  hide() { this.tok++; this.last = null; this.el.classList.add('out'); const tok = this.tok; setTimeout(() => { if (tok === this.tok) this.el.innerHTML = ''; }, 300); },
+  toggle(on) { this.on = on; if (!on) { this.el.innerHTML = ''; } else if (this.last) { const l = this.last; this.show(l); } }
+};
+
+/* =====================================================================
+   UI
+   ===================================================================== */
+const $ = id => document.getElementById(id);
+const UI = {
+  init() {
+    const prog = $('prog'), menu = $('menu');
+    this.segs = SCENES.map((sc, i) => {
+      const d = document.createElement('div'); d.className = 'seg'; d.style.flex = estScene(sc).toFixed(1);
+      d.innerHTML = `<div class="f"></div><div class="tip">${i ? String(i).padStart(2, '0') + ' · ' : ''}${sc.chapter || sc.title}</div>`;
+      d.onclick = e => { e.stopPropagation(); jump(i, .4); }; prog.appendChild(d); return d.firstChild;
+    });
+    SCENES.forEach((sc, i) => { const b = document.createElement('button'); b.innerHTML = `<em>${String(i).padStart(2, '0')}</em><span>${sc.chapter || sc.title}</span>`; b.onclick = () => { this.menu(false); jump(i, .4); }; menu.appendChild(b); });
+    this.menuBtns = [...menu.children];
+    $('bPlay').onclick = () => setPlaying(!E.playing);
+    $('bPrev').onclick = () => jump(E.S.t < 3 ? Math.max(0, E.i - 1) : E.i, .4);
+    $('bNext').onclick = () => jump(Math.min(SCENES.length - 1, E.i + 1), .4);
+    $('bMenu').onclick = e => { e.stopPropagation(); this.menu(!menu.classList.contains('on')); };
+    $('bVoice').onclick = () => this.setVoice(!Voice.on);
+    $('bMusic').onclick = () => this.setMusic(!AudioE.on.music);
+    $('bSfx').onclick = () => this.setSfx(!AudioE.on.sfx);
+    $('bSubs').onclick = () => this.setSubs(!Cap.on);
+    $('bFull').onclick = () => this.full();
+    $('again').onclick = () => { UI.end(false); jump(0, .6); };
+    $('endMenu').onclick = e => { e.stopPropagation(); this.showCtrl(true); this.menu(true); };
+    cv.addEventListener('click', () => { if (E.started && !E.ended) { setPlaying(!E.playing); this.menu(false); } });
+    ['mousemove', 'touchstart', 'pointerdown'].forEach(ev => addEventListener(ev, () => this.poke(), { passive: true }));
+    addEventListener('keydown', e => {
+      if (!E.started) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); $('go').click(); } return; }
+      const k = e.key.toLowerCase();
+      if (k === ' ' || k === 'k') { e.preventDefault(); setPlaying(!E.playing); }
+      else if (e.key === 'ArrowRight') jump(Math.min(SCENES.length - 1, E.i + 1), .4);
+      else if (e.key === 'ArrowLeft') jump(E.S.t < 3 ? Math.max(0, E.i - 1) : E.i, .4);
+      else if (k === 'f' || k === 'а') this.full();
+      else if (k === 'm' || k === 'ь') this.setMusic(!AudioE.on.music);
+      else if (k === 'v' || k === 'м') this.setVoice(!Voice.on);
+      else if (k === 'e' || k === 'у') this.setSfx(!AudioE.on.sfx);
+      else if (k === 'c' || k === 'с') this.setSubs(!Cap.on);
+      else if (k === 'escape') this.menu(false);
+      this.poke();
+    });
+    document.addEventListener('visibilitychange', () => { if (document.hidden && E.started && E.playing) setPlaying(false); });
+    addEventListener('click', e => { if (!menu.contains(e.target)) this.menu(false); });
+    // start screen
+    $('oVoice').onchange = e => this.setVoice(e.target.checked);
+    $('oMusic').onchange = e => { this.setMusic(e.target.checked); this.setSfx(e.target.checked); };
+    $('oSubs').onchange = e => this.setSubs(e.target.checked);
+    $('go').onclick = () => this.start();
+    const mins = Math.round(SCENES.reduce((s, sc) => s + estScene(sc), 0) / 60);
+    this.readyLbl = `Смотреть · ≈ ${mins} мин`;
+    this.voiceAvail(!!Voice.v);
+    this.refresh();
+  },
+  ready() { $('go').disabled = false; $('goLbl').textContent = this.readyLbl; },
+  start() {
+    if (E.started) return; E.started = true;
+    AudioE.init(); AudioE.resume(); AudioE.setMood(SCENES[0].mood);
+    if (Voice.supported && Voice.on && Voice.v) { try { const u = new SpeechSynthesisUtterance(' '); u.volume = 0; speechSynthesis.speak(u); } catch (e) { } }
+    $('start').classList.add('gone'); E.S.bt = 0; E.S.lead = .3; E.S.beat = -1;
+    E.clock = 0; setPlaying(true); this.poke();
+  },
+  scene(i) {
+    const sc = SCENES[i]; $('hudNum').textContent = i ? String(i).padStart(2, '0') : '—'; $('hudTitle').textContent = sc.chapter || sc.title;
+    $('hud').classList.toggle('on', E.started && i > 0);
+    $('tInfo').innerHTML = `<b>${i ? 'Глава ' + i + ' из ' + (SCENES.length - 1) : 'Пролог'}</b> · ${sc.chapter || sc.title}`;
+    this.menuBtns && this.menuBtns.forEach((b, k) => b.classList.toggle('cur', k === i));
+  },
+  chapter(i) {
+    const el = $('chap'); el.querySelector('.num').textContent = 'ГЛАВА ' + String(i).padStart(2, '0'); el.querySelector('.ttl').textContent = SCENES[i].chapter;
+    el.classList.remove('show'); void el.offsetWidth; el.classList.add('show');
+  },
+  tick() {
+    if (!this.segs || !E.S) return; const S = E.S, sc = SCENES[E.i];
+    let f = 0; if (S.beat >= sc.beats.length) f = 1; else if (S.beat >= 0) { const b = sc.beats[S.beat]; f = (S.beat + clamp(S.bt / Math.max(b.d || 0, b.t ? readT(b.t) : 1))) / sc.beats.length; }
+    this.segs.forEach((el, k) => { const w = k < E.i ? 100 : k > E.i ? 0 : f * 100; if (el._w !== w) { el.style.width = w + '%'; el._w = w; } });
+  },
+  playState(p) { $('playPath').setAttribute('d', p ? 'M7 5h4v14H7zM13 5h4v14h-4z' : 'M8 5v14l11-7z'); $('paused').classList.toggle('on', !p && E.started && !E.ended); if (!p) this.showCtrl(true); },
+  poke() { if (!E.started) return; this.showCtrl(true); clearTimeout(this.ht); this.ht = setTimeout(() => { if (E.playing && !$('menu').classList.contains('on')) this.showCtrl(false); }, 2600); },
+  showCtrl(on) { $('ctrl').classList.toggle('show', on); document.body.style.cursor = on || !E.started ? '' : 'none'; },
+  menu(on) { $('menu').classList.toggle('on', on); },
+  end(on) { $('end').classList.toggle('on', on); $('hud').style.opacity = on ? '0' : ''; if (on) { this.showCtrl(true); $('paused').classList.remove('on'); } },
+  full() { const d = document; if (!d.fullscreenElement) (d.documentElement.requestFullscreen || d.documentElement.webkitRequestFullscreen || (() => { })).call(d.documentElement); else (d.exitFullscreen || d.webkitExitFullscreen).call(d); },
+  setVoice(on) { Voice.on = on; if (!on) Voice.cancel(); else if (E.started && E.playing) { const S = E.S, b = SCENES[E.i].beats[S.beat]; if (b && b.t) Voice.say(b.v || b.t); } this.refresh(); },
+  setMusic(on) { AudioE.on.music = on; AudioE.updateMusic(.4); this.refresh(); },
+  setSfx(on) { AudioE.setSfx(on); this.refresh(); },
+  setSubs(on) { Cap.toggle(on); this.refresh(); },
+  refresh() {
+    $('bVoice').classList.toggle('off', !Voice.active()); $('bMusic').classList.toggle('off', !AudioE.on.music); $('bSfx').classList.toggle('off', !AudioE.on.sfx); $('bSubs').classList.toggle('off', !Cap.on);
+    $('oVoice').checked = Voice.active(); $('oMusic').checked = AudioE.on.music; $('oSubs').checked = Cap.on;
+  },
+  voiceAvail(ok) {
+    const vb = $('bVoice'), ov = $('oVoice'); if (!vb) return;
+    vb.disabled = !ok; ov.disabled = !ok;
+    $('vnote').textContent = ok ? 'Голос: ' + Voice.v.name.replace(/Microsoft |Google |\(.*?\)|Online|Natural/g, '').trim() + ' — голос вашего браузера' : (Voice.supported ? 'В этом браузере нет русского голоса — фильм пойдёт с субтитрами' : 'Браузер не поддерживает синтез речи — фильм пойдёт с субтитрами');
+    this.refresh();
+  }
+};
+
+/* =====================================================================
+   BOOT
+   ===================================================================== */
+E.S = mkS(SCENES[0]);
+UI.init(); UI.scene(0);
+requestAnimationFrame(frame);
+(async () => {
+  try {
+    await Promise.race([Promise.all([document.fonts.load(`900 100px Unbounded`), document.fonts.load(`700 20px Unbounded`), document.fonts.load(`600 20px Manrope`), document.fonts.load(`600 20px 'JetBrains Mono'`)]), new Promise(r => setTimeout(r, 3000))]);
+  } catch (e) { }
+  GLYPH = null; INTRO_P = null; introParticles();
+  UI.ready();
+  // #dev: silent start + window.seek(scene, beat, secondsIntoBeat) for previewing individual shots
+  if (location.hash === '#dev') {
+    UI.setVoice(false); UI.start(); ['paused', 'ctrl', 'start'].forEach(id => $(id).style.display = 'none');
+    window.seek = (i, beat, extra = 0) => {
+      setPlaying(false); E.trans = null; E.fade = 0; enterScene(i); $('chap').classList.remove('show'); let n = 0;
+      while (!(E.S.beat > beat || (E.S.beat === beat && E.S.s(beat) >= extra)) && n < 12000) { advance(1 / 60); n++; if (E.i !== i) break; }
+      render(); return { i: E.i, beat: E.S.beat, t: +E.S.t.toFixed(1) };
+    };
+  }
+})();
+</script>
+</body>
+</html>
